@@ -1,22 +1,48 @@
 @import 'tailwindcss';
 
+:root {
+  color-scheme: light dark;
+  /* --- LIGHT MODE TOKENS --- */
+  --background: #f8fafc; /* off-white */
+  --surface: #ffffff; /* Pure white cards & inputs */
+  --foreground: #0f172a; /* Dark navy text */
+  --border: #e2e8f0; /* Subtle light border */
+  --muted: #64748b; /* secondary text */
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* --- DARK MODE TOKENS --- */
+    --background: #090d16; /* dark page background */
+    --surface: #0f172a; /* Dark cards & inputs */
+    --foreground: #f8fafc; /* light text */
+    --border: #1e293b; /* dark border */
+    --muted: #94a3b8; /* Lighter secondary text */
+  }
+}
+
 @theme {
   --font-sans:
     'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     sans-serif;
 
-  /* Semantic Theme Tokens */
+  /* Brand Palette */
   --color-primary: #0284c7;
   --color-primary-hover: #0369a1;
   --color-secondary: #0f172a;
-  --color-muted: #64748b;
-  --color-border: #e2e8f0;
-  --color-background: #f8fafc;
-  --color-surface: #ffffff;
-}
 
-:root {
-  color-scheme: light dark;
+  /* Dynamic Semantic Tokens */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+
+  /* Semantic Feedback States */
+  --color-error: #ef4444;
+  --color-success: #10b981;
+  --color-error-hover: #dc2626;
+  --color-error-surface: #fef2f2;
+  --color-success-surface: #ecfdf5;
 }
 
 body {
@@ -24,5 +50,5 @@ body {
   min-height: 100vh;
   font-family: var(--font-sans);
   background-color: var(--color-background);
-  color: #0f172a;
+  color: var(--color-foreground);
 }
