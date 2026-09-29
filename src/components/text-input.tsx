@@ -38,7 +38,7 @@ export function TextInput({
       {label && (
         <label
           htmlFor={inputId}
-          className="text-xs font-semibold text-slate-700 dark:text-slate-200"
+          className="text-xs font-semibold text-slate-700"
         >
           {label}
         </label>
@@ -57,14 +57,14 @@ export function TextInput({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : helperText ? helperId : undefined}
           className={cn(
-            'w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-900 transition-all',
-            'bg-white dark:bg-black/20',
-            'border-slate-300 dark:border-slate-700',
+            'w-full px-3 py-2 text-sm rounded-lg border bg-white transition-all',
+            'bg-white',
+            'border-slate-300',
+            'text-slate-900',
+            'border-slate-300',
             'focus:outline-none focus:ring-2 focus:border-transparent',
             'disabled:opacity-50 disabled:bg-slate-100 disabled:cursor-not-allowed',
-            error
-              ? 'border-error dark:border-error text-error focus:ring-error'
-              : 'border-slate-300 dark:border-slate-700 focus:ring-primary text-slate-900 dark:text-slate-100',
+            error ? 'border-error focus:ring-error' : 'focus:ring-primary',
             leftIcon && 'pl-10',
             isPassword && 'pr-10',
             className,

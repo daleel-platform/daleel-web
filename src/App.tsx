@@ -1,56 +1,113 @@
-import './App.css';
 import { Button } from '@/components/button';
-import { TextInput } from '@/components/text-input';
 import { Text } from '@/components/text';
-import { Card } from '@/components/card';
+import { TextInput } from '@/components/text-input';
+
+const matchedMentors = [
+  {
+    name: 'Ahmed Nasser',
+    role: 'Senior Product Manager, Careem',
+    focus: 'Product strategy, career transitions',
+  },
+  {
+    name: 'Lina Haddad',
+    role: 'Engineering Lead, Vodafone Egypt',
+    focus: 'Technical leadership, system design',
+  },
+  {
+    name: 'Youssef Fathy',
+    role: 'UX Director, freelance',
+    focus: 'Portfolio reviews, design careers',
+  },
+];
 
 function App() {
-  return (
-    <div className="p-8 max-w-xl mx-auto space-y-6">
-      <Text variant="h1">Daleel UI Test</Text>
-      <Text variant="h2">Daleel UI Test</Text>
-      <Text variant="h3">Daleel UI Test</Text>
-      <Text variant="body">Daleel UI Test</Text>
-      <Text variant="caption">Daleel UI Test</Text>
-      <Button variant="primary">Primary Button</Button>
-      <Button variant="secondary">Secondary Button</Button>
-      <Button variant="primary" loading>
-        Loading Button
-      </Button>
-      <Button variant="secondary" loading>
-        Loading Button
-      </Button>
-      <Button variant="outline">Outline Button</Button>
-      <Button variant="ghost">Ghost Button</Button>
-      <Button variant="primary" disabled>
-        Disabled
-      </Button>
-      <TextInput
-        label="Email"
-        placeholder="Enter email"
-        helperText="Your work email"
-      />
-      <TextInput label="Password" type="password" />
+  const profileCompletion = 60;
 
-      <Card className="max-w-md mx-auto space-y-4">
-        <Text variant="h2">Sign in to Daleel</Text>
-        <TextInput label="Email Address" placeholder="you@example.com" />
-        <TextInput label="Password" type="password" />
-        <p className="text-success text-xs font-medium flex items-center gap-1">
-          ✓ Password meets all requirements
-        </p>
-        <TextInput
-          label="Email Address"
-          error="Please enter a valid email"
-          defaultValue="wrong-email"
-        />
-        <Button variant="primary" className="w-full">
-          Sign In
-        </Button>
-        <Button variant="secondary" className="w-full">
-          Sign Up
-        </Button>
-      </Card>
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="border-border flex items-center justify-between border-b px-8 py-4">
+        <Text variant="h3" as="span">
+          Daleel
+        </Text>
+        <div className="flex items-center gap-3">
+          <TextInput placeholder="Search mentors" className="w-56" />
+          <div className="bg-secondary flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white">
+            SM
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl space-y-10 px-8 py-10">
+        <div>
+          <Text variant="h1">Good afternoon, Sara</Text>
+          <Text variant="muted" className="mt-1">
+            Your next mentoring session is coming up.
+          </Text>
+        </div>
+
+        <section className="border-primary bg-surface rounded-xl border-l-4 p-6 shadow-sm">
+          <Text variant="caption">Thursday, October 2 · 4:00 PM</Text>
+          <Text variant="h2" className="mt-1">
+            Product Management Career Path
+          </Text>
+          <Text variant="body-sm" className="mt-1">
+            with Ahmed Nasser
+          </Text>
+          <div className="mt-4 flex gap-3">
+            <Button variant="primary">Join session</Button>
+            <Button variant="ghost">Reschedule</Button>
+          </div>
+        </section>
+
+        <section className="border-border rounded-xl border p-6">
+          <div className="flex items-center justify-between">
+            <Text variant="h3">Finish setting up your profile</Text>
+            <Text variant="muted">{profileCompletion}%</Text>
+          </div>
+          <div className="bg-border mt-3 h-2 w-full rounded-full">
+            <div
+              className="bg-primary h-2 rounded-full"
+              style={{ width: `${profileCompletion}%` }}
+            />
+          </div>
+          <Text variant="body-sm" className="mt-3">
+            Mentors are more likely to accept requests from complete profiles.
+          </Text>
+          <div className="mt-4 flex items-end gap-3">
+            <TextInput
+              label="LinkedIn profile"
+              placeholder="linkedin.com/in/your-name"
+              className="flex-1"
+            />
+            <Button variant="secondary">Save</Button>
+          </div>
+        </section>
+
+        <section>
+          <Text variant="h3" className="mb-4">
+            Mentors matched to you
+          </Text>
+          <div className="border-border divide-border divide-y border-t border-b">
+            {matchedMentors.map((mentor) => (
+              <div
+                key={mentor.name}
+                className="flex items-center justify-between py-4"
+              >
+                <div>
+                  <Text variant="body">{mentor.name}</Text>
+                  <Text variant="muted">{mentor.role}</Text>
+                  <Text variant="caption" className="mt-0.5">
+                    {mentor.focus}
+                  </Text>
+                </div>
+                <Button variant="outline" size="sm">
+                  Request session
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

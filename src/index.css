@@ -9,16 +9,6 @@
   --border: #e2e8f0; /* Subtle light border */
   --muted: #64748b; /* secondary text */
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* --- DARK MODE TOKENS --- */
-    --background: #090d16; /* dark page background */
-    --surface: #0f172a; /* Dark cards & inputs */
-    --foreground: #f8fafc; /* light text */
-    --border: #1e293b; /* dark border */
-    --muted: #94a3b8; /* Lighter secondary text */
-  }
-}
 
 @theme {
   --font-sans:
