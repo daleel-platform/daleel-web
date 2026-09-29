@@ -1,121 +1,114 @@
-import { useState } from 'react';
-import heroImg from './assets/hero.png';
-import reactLogo from './assets/react.svg';
-import viteLogo from './assets/vite.svg';
-import './App.css';
+import { Button } from '@/components/button';
+import { Text } from '@/components/text';
+import { TextInput } from '@/components/text-input';
+
+const matchedMentors = [
+  {
+    name: 'Ahmed Nasser',
+    role: 'Senior Product Manager, Careem',
+    focus: 'Product strategy, career transitions',
+  },
+  {
+    name: 'Lina Haddad',
+    role: 'Engineering Lead, Vodafone Egypt',
+    focus: 'Technical leadership, system design',
+  },
+  {
+    name: 'Youssef Fathy',
+    role: 'UX Director, freelance',
+    focus: 'Portfolio reviews, design careers',
+  },
+];
 
 function App() {
-  const [count, setCount] = useState(0);
+  const profileCompletion = 60;
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="min-h-screen bg-background">
+      <header className="border-border flex items-center justify-between border-b px-8 py-4">
+        <Text variant="h3" as="span">
+          Daleel
+        </Text>
+        <div className="flex items-center gap-3">
+          <TextInput placeholder="Search mentors" className="w-56" />
+          <div className="bg-secondary flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white">
+            SM
+          </div>
         </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl space-y-10 px-8 py-10">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+          <Text variant="h1">Good afternoon, Sara</Text>
+          <Text variant="muted" className="mt-1">
+            Your next mentoring session is coming up.
+          </Text>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+        <section className="border-primary bg-surface rounded-xl border-l-4 p-6 shadow-sm">
+          <Text variant="caption">Thursday, October 2 · 4:00 PM</Text>
+          <Text variant="h2" className="mt-1">
+            Product Management Career Path
+          </Text>
+          <Text variant="body-sm" className="mt-1">
+            with Ahmed Nasser
+          </Text>
+          <div className="mt-4 flex gap-3">
+            <Button variant="primary">Join session</Button>
+            <Button variant="ghost">Reschedule</Button>
+          </div>
+        </section>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <section className="border-border rounded-xl border p-6">
+          <div className="flex items-center justify-between">
+            <Text variant="h3">Finish setting up your profile</Text>
+            <Text variant="muted">{profileCompletion}%</Text>
+          </div>
+          <div className="bg-border mt-3 h-2 w-full rounded-full">
+            <div
+              className="bg-primary h-2 rounded-full"
+              style={{ width: `${profileCompletion}%` }}
+            />
+          </div>
+          <Text variant="body-sm" className="mt-3">
+            Mentors are more likely to accept requests from complete profiles.
+          </Text>
+          <div className="mt-4 flex items-end gap-3">
+            <TextInput
+              label="LinkedIn profile"
+              placeholder="linkedin.com/in/your-name"
+              className="flex-1"
+            />
+            <Button variant="secondary">Save</Button>
+          </div>
+        </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+        <section>
+          <Text variant="h3" className="mb-4">
+            Mentors matched to you
+          </Text>
+          <div className="border-border divide-border divide-y border-t border-b">
+            {matchedMentors.map((mentor) => (
+              <div
+                key={mentor.name}
+                className="flex items-center justify-between py-4"
+              >
+                <div>
+                  <Text variant="body">{mentor.name}</Text>
+                  <Text variant="muted">{mentor.role}</Text>
+                  <Text variant="caption" className="mt-0.5">
+                    {mentor.focus}
+                  </Text>
+                </div>
+                <Button variant="outline" size="sm">
+                  Request session
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
 

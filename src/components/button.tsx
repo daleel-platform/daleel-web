@@ -4,17 +4,18 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
   children: ReactNode;
 }
 
 const variantStyles: Record<NonNullable<ButtonProps['variant']>, string> = {
-  primary: 'bg-primary text-white hover:bg-primary-hover shadow-sm',
+  primary:
+    'border border-transparent bg-primary text-white hover:bg-primary-hover shadow-sm',
   secondary:
-    'bg-slate-100 text-slate-800 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
+    'border border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200',
   outline:
-    'border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800',
-  ghost:
-    'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+    'border border-primary text-primary hover:bg-primary hover:text-white',
+  ghost: 'border border-transparent text-slate-600 hover:bg-slate-100',
 };
 
 const sizeStyles: Record<NonNullable<ButtonProps['size']>, string> = {
@@ -26,6 +27,8 @@ const sizeStyles: Record<NonNullable<ButtonProps['size']>, string> = {
 export function Button({
   variant = 'primary',
   size = 'md',
+  loading = false,
+  disabled,
   className,
   children,
   ...props
@@ -33,14 +36,38 @@ export function Button({
   return (
     <button
       type="button"
+      disabled={disabled || loading}
+      aria-busy={loading}
       className={cn(
-        'inline-flex items-center justify-center font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+        'inline-flex items-center justify-center align-middle font-medium transition-colors cursor-pointer',
+        'disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
         variantStyles[variant],
         sizeStyles[size],
         className,
       )}
       {...props}
     >
+      {loading && (
+        <svg
+          className="animate-spin -ml-1 mr-2 h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          />
+        </svg>
+      )}
       {children}
     </button>
   );
