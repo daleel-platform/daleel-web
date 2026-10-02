@@ -2,6 +2,9 @@ import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { TextInput } from '@/components/text-input';
 
+import { Link } from 'react-router';
+import { ROUTES } from '@/routes/paths';
+
 const matchedMentors = [
   {
     name: 'Ahmed Nasser',
@@ -30,7 +33,12 @@ function App() {
           Daleel
         </Text>
         <div className="flex items-center gap-3">
+          <Link to={ROUTES.LOGIN}>
+            <Button variant="outline">Login</Button>
+          </Link>
+
           <TextInput placeholder="Search mentors" className="w-56" />
+
           <div className="bg-secondary flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white">
             SM
           </div>
