@@ -18,9 +18,12 @@ export function ResetPasswordForm() {
       setPasswordError('Password is required');
       return;
     }
-    //min length until password requirements are confirmed.
-    if (password.length < 8) {
-      setPasswordError('Password must be at least 8 characters long');
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+    if (!passwordRegex.test(password)) {
+      setPasswordError(
+        'Password must be at least 8 characters and include 1 uppercase letter, 1 number, and 1 special character',
+      );
       return;
     }
     if (!confirmPassword.trim()) {

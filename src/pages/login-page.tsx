@@ -8,6 +8,7 @@ import { ROUTES } from '@/routes/paths';
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
   const navigate = useNavigate();
 
   return (
@@ -35,6 +36,16 @@ export function LoginPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+
+              setEmailError('');
+
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+              if (!emailRegex.test(email)) {
+                setEmailError('Please enter a valid email address');
+                return;
+              }
+
               // TODO: connect to auth
               navigate(ROUTES.DASHBOARD);
             }}
@@ -53,6 +64,7 @@ export function LoginPage() {
                 value={email}
                 placeholder="name@example.com"
                 onChange={(e) => setEmail(e.target.value)}
+                error={emailError}
                 required
               />
             </div>
