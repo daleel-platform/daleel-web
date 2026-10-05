@@ -12,46 +12,38 @@ export function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'mentee' | 'mentor'>('mentee');
+
+  // States for errors and interactions
   const [errors, setErrors] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [globalError, setGlobalError] = useState('');
+
   const navigate = useNavigate();
 
   const validateForm = () => {
     let isValid = true;
-    const newErrors = {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-    };
+    const newErrors = { email: '', password: '', confirmPassword: '' };
 
-    if (!firstName.trim()) {
-      newErrors.firstName = 'Please enter your first name';
-      isValid = false;
-    }
-
-    if (!lastName.trim()) {
-      newErrors.lastName = 'Please enter your last name';
-      isValid = false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.com$/;
     if (!emailRegex.test(email)) {
-      newErrors.email =
-        'Please enter a valid email address, such as name@example.com';
+      newErrors.email = 'name@example.com';
       isValid = false;
     }
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    const passwordRegex =
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{}|;:,.<>?]).{8,}$/;
     if (!passwordRegex.test(password)) {
       newErrors.password =
-        'Your password must be at least 8 characters long and include at least one uppercase letter, one number, and one special character';
+        'At least 8 characters, 1 uppercase, 1 number, and 1 special character';
       isValid = false;
     }
 
@@ -62,6 +54,35 @@ export function RegisterPage() {
 
     setErrors(newErrors);
     return isValid;
+  };
+
+  // دالة بتشتغل لما اليوزر يطلع بره الخانة
+  const handleBlur = (field: keyof typeof touched) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateForm();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // نظهر كل الأخطاء لو داس Submit من غير ما يمر على الحقول
+    setTouched({ email: true, password: true, confirmPassword: true });
+
+    if (validateForm()) {
+      setIsSubmitting(true);
+      setGlobalError(''); // نفضي أي أخطاء قديمة
+
+      try {
+        // محاكاة لطلب السيرفر بياخد ثانيتين
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        // هنا المفروض نربط بالـ API الحقيقي
+        navigate(ROUTES.DASHBOARD);
+      } catch (error) {
+        setGlobalError('Something went wrong. Please try again later.');
+      } finally {
+        setIsSubmitting(false); // نرجع الزرار لشكله الطبيعي
+      }
+    }
   };
 
   return (
@@ -87,16 +108,14 @@ export function RegisterPage() {
             </Text>
           </div>
 
-          <form
-            noValidate
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (validateForm()) {
-                navigate(ROUTES.DASHBOARD);
-              }
-            }}
-            className="space-y-4"
-          >
+          {/* Banner for generic submission failures */}
+          {globalError && (
+            <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+              {globalError}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-700">
                 I want to join as a:
@@ -143,21 +162,9 @@ export function RegisterPage() {
                   type="text"
                   id="firstName"
                   value={firstName}
-                  onChange={(e) => {
-                    setFirstName(e.target.value);
-                    if (errors.firstName)
-                      setErrors((prev) => ({ ...prev, firstName: '' }));
-                  }}
+                  onChange={(e) => setFirstName(e.target.value)}
                   required
                 />
-                {errors.firstName && (
-                  <span
-                    role="alert"
-                    className="text-xs text-red-500 mt-1 block"
-                  >
-                    {errors.firstName}
-                  </span>
-                )}
               </div>
               <div className="w-1/2">
                 <label
@@ -170,21 +177,9 @@ export function RegisterPage() {
                   type="text"
                   id="lastName"
                   value={lastName}
-                  onChange={(e) => {
-                    setLastName(e.target.value);
-                    if (errors.lastName)
-                      setErrors((prev) => ({ ...prev, lastName: '' }));
-                  }}
+                  onChange={(e) => setLastName(e.target.value)}
                   required
                 />
-                {errors.lastName && (
-                  <span
-                    role="alert"
-                    className="text-xs text-red-500 mt-1 block"
-                  >
-                    {errors.lastName}
-                  </span>
-                )}
               </div>
             </div>
 
@@ -199,16 +194,15 @@ export function RegisterPage() {
                 type="email"
                 id="email"
                 value={email}
-                placeholder="name@example.com"
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (errors.email)
-                    setErrors((prev) => ({ ...prev, email: '' }));
+                  validateForm();
                 }}
+                onBlur={() => handleBlur('email')}
                 required
               />
-              {errors.email && (
-                <span role="alert" className="text-xs text-red-500 mt-1 block">
+              {touched.email && errors.email && (
+                <span className="text-xs text-red-500 mt-1 block">
                   {errors.email}
                 </span>
               )}
@@ -227,22 +221,14 @@ export function RegisterPage() {
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  setErrors((prev) => ({
-                    ...prev,
-                    password: '',
-                    confirmPassword: '',
-                  }));
+                  validateForm();
                 }}
+                onBlur={() => handleBlur('password')}
                 required
               />
-              {errors.password ? (
-                <span role="alert" className="text-xs text-red-500 mt-1 block">
+              {touched.password && errors.password && (
+                <span className="text-xs text-red-500 mt-1 block">
                   {errors.password}
-                </span>
-              ) : (
-                <span className="text-xs text-gray-500 mt-1 block">
-                  Use 8+ characters with an uppercase letter, a number, and a
-                  special character.
                 </span>
               )}
             </div>
@@ -260,20 +246,50 @@ export function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value);
-                  if (errors.confirmPassword)
-                    setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                  validateForm();
                 }}
+                onBlur={() => handleBlur('confirmPassword')}
                 required
               />
-              {errors.confirmPassword && (
-                <span role="alert" className="text-xs text-red-500 mt-1 block">
+              {touched.confirmPassword && errors.confirmPassword && (
+                <span className="text-xs text-red-500 mt-1 block">
                   {errors.confirmPassword}
                 </span>
               )}
             </div>
 
-            <Button type="submit" className="mt-4 w-full">
-              Create Account
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className={`mt-4 w-full flex items-center justify-center ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              {isSubmitting ? (
+                <>
+                  <svg
+                    className="mr-2 h-4 w-4 animate-spin text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account'
+              )}
             </Button>
           </form>
 
@@ -285,10 +301,11 @@ export function RegisterPage() {
 
           <Button
             type="button"
+            disabled={isSubmitting}
             onClick={() => {
               navigate(ROUTES.DASHBOARD);
             }}
-            className="mt-6 flex w-full items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+            className="mt-6 flex w-full items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <img
               src="https://www.svgrepo.com/show/475656/google-color.svg"
