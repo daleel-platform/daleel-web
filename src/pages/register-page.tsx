@@ -10,8 +10,59 @@ export function RegisterPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'mentee' | 'mentor'>('mentee');
+  const [errors, setErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const navigate = useNavigate();
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    };
+
+    if (!firstName.trim()) {
+      newErrors.firstName = 'Please enter your first name';
+      isValid = false;
+    }
+
+    if (!lastName.trim()) {
+      newErrors.lastName = 'Please enter your last name';
+      isValid = false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      newErrors.email =
+        'Please enter a valid email address, such as name@example.com';
+      isValid = false;
+    }
+
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      newErrors.password =
+        'Your password must be at least 8 characters long and include at least one uppercase letter, one number, and one special character';
+      isValid = false;
+    }
+
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -37,10 +88,12 @@ export function RegisterPage() {
           </div>
 
           <form
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
-              // TODO: connect to auth
-              navigate(ROUTES.DASHBOARD);
+              if (validateForm()) {
+                navigate(ROUTES.DASHBOARD);
+              }
             }}
             className="space-y-4"
           >
@@ -90,9 +143,21 @@ export function RegisterPage() {
                   type="text"
                   id="firstName"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    if (errors.firstName)
+                      setErrors((prev) => ({ ...prev, firstName: '' }));
+                  }}
                   required
                 />
+                {errors.firstName && (
+                  <span
+                    role="alert"
+                    className="text-xs text-red-500 mt-1 block"
+                  >
+                    {errors.firstName}
+                  </span>
+                )}
               </div>
               <div className="w-1/2">
                 <label
@@ -105,9 +170,21 @@ export function RegisterPage() {
                   type="text"
                   id="lastName"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    if (errors.lastName)
+                      setErrors((prev) => ({ ...prev, lastName: '' }));
+                  }}
                   required
                 />
+                {errors.lastName && (
+                  <span
+                    role="alert"
+                    className="text-xs text-red-500 mt-1 block"
+                  >
+                    {errors.lastName}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -122,9 +199,19 @@ export function RegisterPage() {
                 type="email"
                 id="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@example.com"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email)
+                    setErrors((prev) => ({ ...prev, email: '' }));
+                }}
                 required
               />
+              {errors.email && (
+                <span role="alert" className="text-xs text-red-500 mt-1 block">
+                  {errors.email}
+                </span>
+              )}
             </div>
 
             <div>
@@ -138,10 +225,51 @@ export function RegisterPage() {
                 type="password"
                 id="password"
                 value={password}
-                minLength={8}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    password: '',
+                    confirmPassword: '',
+                  }));
+                }}
                 required
               />
+              {errors.password ? (
+                <span role="alert" className="text-xs text-red-500 mt-1 block">
+                  {errors.password}
+                </span>
+              ) : (
+                <span className="text-xs text-gray-500 mt-1 block">
+                  Use 8+ characters with an uppercase letter, a number, and a
+                  special character.
+                </span>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                Confirm Password
+              </label>
+              <TextInput
+                type="password"
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (errors.confirmPassword)
+                    setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+                }}
+                required
+              />
+              {errors.confirmPassword && (
+                <span role="alert" className="text-xs text-red-500 mt-1 block">
+                  {errors.confirmPassword}
+                </span>
+              )}
             </div>
 
             <Button type="submit" className="mt-4 w-full">
@@ -158,7 +286,6 @@ export function RegisterPage() {
           <Button
             type="button"
             onClick={() => {
-              // TODO: connect to Google auth
               navigate(ROUTES.DASHBOARD);
             }}
             className="mt-6 flex w-full items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"

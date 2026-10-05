@@ -51,6 +51,7 @@ export function LoginPage() {
                 id="email"
                 type="email"
                 value={email}
+                placeholder="name@example.com"
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
