@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { apiClient } from '@/api/client';
+import { useResetPassword } from '@/features/auth/hooks/use-reset-password';
 import { ApiError } from '@/api/errors';
 import { Button } from '@/components/button';
 import { Text } from '@/components/text';
@@ -11,18 +11,34 @@ export function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState('');
   const [searchParams] = useSearchParams();
+  const [tokenError, setTokenError] = useState('');
+
+  const {
+    mutate: submitResetPassword,
+    isPending,
+    isSuccess,
+    error,
+  } = useResetPassword();
+
+  const apiError =
+    error instanceof ApiError
+      ? error.statusCode === 400 || error.statusCode === 401
+        ? 'This reset link is invalid, expired, or has already been used.'
+        : error.message
+      : error
+        ? 'Something went wrong. Please try again.'
+        : '';
+
+  const submitError = tokenError || apiError;
   const token = searchParams.get('token');
-  async function handleSubmit() {
+  function handleSubmit() {
     setPasswordError('');
     setConfirmPasswordError('');
-    setSubmitError('');
+    setTokenError('');
 
     if (!token) {
-      setSubmitError('Reset token is missing from the URL.');
+      setTokenError('Reset token is missing from the URL.');
       return;
     }
 
@@ -50,30 +66,7 @@ export function ResetPasswordForm() {
       return;
     }
 
-    try {
-      setIsLoading(true);
-
-      await apiClient.post<{ message: string }>('/auth/reset-password', {
-        password,
-        token,
-      });
-
-      setIsSuccess(true);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        if (error.statusCode === 400 || error.statusCode === 401) {
-          setSubmitError(
-            'This reset link is invalid, expired, or has already been used.',
-          );
-        } else {
-          setSubmitError(error.message);
-        }
-      } else {
-        setSubmitError('Something went wrong. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    submitResetPassword({ password, token });
   }
 
   if (isSuccess) {
@@ -122,7 +115,7 @@ export function ResetPasswordForm() {
 
       <Button
         className="mt-4 w-full"
-        loading={isLoading}
+        loading={isPending}
         onClick={handleSubmit}
       >
         Reset Password

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { apiClient } from '@/api/client';
 import { ApiError } from '@/api/errors';
+import { useForgotPassword } from '@/features/auth/hooks/use-forgot-password';
 import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { TextInput } from '@/components/text-input';
@@ -10,12 +10,21 @@ import { ROUTES } from '@/routes/paths';
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [submitError, setSubmitError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  async function handleSubmit() {
+  const {
+    mutate: submitForgotPassword,
+    isPending,
+    isSuccess,
+    error,
+  } = useForgotPassword();
+
+  const submitError =
+    error instanceof ApiError
+      ? error.message
+      : error
+        ? 'Something went wrong. Please try again.'
+        : '';
+  function handleSubmit() {
     setEmailError('');
-    setSubmitError('');
 
     if (!email.trim()) {
       setEmailError('Email is required');
@@ -29,23 +38,7 @@ export function ForgotPasswordForm() {
       return;
     }
 
-    try {
-      setIsLoading(true);
-
-      await apiClient.post<{ message: string }>('/auth/forgot-password', {
-        email: email.trim(),
-      });
-
-      setIsSuccess(true);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        setSubmitError(error.message);
-      } else {
-        setSubmitError('Something went wrong. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    submitForgotPassword({ email: email.trim() });
   }
   if (isSuccess) {
     return (
@@ -88,7 +81,7 @@ export function ForgotPasswordForm() {
       )}
       <Button
         className="mt-6 w-full"
-        loading={isLoading}
+        loading={isPending}
         onClick={handleSubmit}
       >
         Send reset link
