@@ -1,23 +1,52 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router';
+import { useResetPassword } from '@/features/auth/hooks/use-reset-password';
+import { ApiError } from '@/api/errors';
 import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { TextInput } from '@/components/text-input';
+
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const [searchParams] = useSearchParams();
+  const [tokenError, setTokenError] = useState('');
+
+  const {
+    mutate: submitResetPassword,
+    isPending,
+    isSuccess,
+    error,
+  } = useResetPassword();
+
+  const apiError =
+    error instanceof ApiError
+      ? error.statusCode === 400 || error.statusCode === 401
+        ? 'This reset link is invalid, expired, or has already been used.'
+        : error.message
+      : error
+        ? 'Something went wrong. Please try again.'
+        : '';
+
+  const submitError = tokenError || apiError;
+  const token = searchParams.get('token');
   function handleSubmit() {
     setPasswordError('');
     setConfirmPasswordError('');
-    setSubmitError('');
+    setTokenError('');
+
+    if (!token) {
+      setTokenError('Reset token is missing from the URL.');
+      return;
+    }
+
     if (!password.trim()) {
       setPasswordError('Password is required');
       return;
     }
+
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
     if (!passwordRegex.test(password)) {
@@ -26,18 +55,18 @@ export function ResetPasswordForm() {
       );
       return;
     }
+
     if (!confirmPassword.trim()) {
       setConfirmPasswordError('Confirm Password is required');
       return;
     }
+
     if (password !== confirmPassword) {
       setConfirmPasswordError('Passwords do not match');
       return;
     }
-    setIsLoading(true);
-    // Temporary UI-only behavior, waiting for backend.
-    setIsSuccess(true);
-    setIsLoading(false);
+
+    submitResetPassword({ password, token });
   }
 
   if (isSuccess) {
@@ -76,7 +105,6 @@ export function ResetPasswordForm() {
           error={confirmPasswordError}
         />
       </div>
-      {/* Display backend reset token errors here. */}
       {submitError && (
         <div className="mt-4 rounded-lg border border-error px-4 py-3">
           <Text variant="body-sm" className="text-error">
@@ -87,7 +115,7 @@ export function ResetPasswordForm() {
 
       <Button
         className="mt-4 w-full"
-        loading={isLoading}
+        loading={isPending}
         onClick={handleSubmit}
       >
         Reset Password
