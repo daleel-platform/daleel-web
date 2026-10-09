@@ -1,9 +1,17 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { Text } from '@/components/text';
 import { Button } from '@/components/button';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
+import { apiClient } from '@/api/client';
+import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants';
+
+interface AuthResponse {
+  accessToken: string;
+  user: any;
+}
 
 export function RegisterPage() {
   const [firstName, setFirstName] = useState('');
@@ -13,7 +21,6 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'mentee' | 'mentor'>('mentee');
 
-  // States for errors and interactions
   const [errors, setErrors] = useState({
     email: '',
     password: '',
@@ -24,10 +31,24 @@ export function RegisterPage() {
     password: false,
     confirmPassword: false,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState('');
 
   const navigate = useNavigate();
+
+  const mutation = useMutation({
+    mutationFn: (userData: any) =>
+      apiClient.post<AuthResponse>('/auth/register', userData),
+    onSuccess: (data) => {
+      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.accessToken);
+      localStorage.setItem('userData', JSON.stringify(data.user));
+      navigate(ROUTES.DASHBOARD);
+    },
+    onError: (error: any) => {
+      setGlobalError(
+        error.message || 'Something went wrong. Please try again later.',
+      );
+    },
+  });
 
   const validateForm = () => {
     let isValid = true;
@@ -56,32 +77,23 @@ export function RegisterPage() {
     return isValid;
   };
 
-  // دالة بتشتغل لما اليوزر يطلع بره الخانة
   const handleBlur = (field: keyof typeof touched) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     validateForm();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // نظهر كل الأخطاء لو داس Submit من غير ما يمر على الحقول
     setTouched({ email: true, password: true, confirmPassword: true });
 
     if (validateForm()) {
-      setIsSubmitting(true);
-      setGlobalError(''); // نفضي أي أخطاء قديمة
+      setGlobalError('');
 
-      try {
-        // محاكاة لطلب السيرفر بياخد ثانيتين
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // هنا المفروض نربط بالـ API الحقيقي
-        navigate(ROUTES.DASHBOARD);
-      } catch (error) {
-        setGlobalError('Something went wrong. Please try again later.');
-      } finally {
-        setIsSubmitting(false); // نرجع الزرار لشكله الطبيعي
-      }
+      mutation.mutate({
+        name: `${firstName} ${lastName}`.trim(),
+        email,
+        password,
+      });
     }
   };
 
@@ -108,7 +120,6 @@ export function RegisterPage() {
             </Text>
           </div>
 
-          {/* Banner for generic submission failures */}
           {globalError && (
             <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600">
               {globalError}
@@ -260,10 +271,10 @@ export function RegisterPage() {
 
             <Button
               type="submit"
-              disabled={isSubmitting}
-              className={`mt-4 w-full flex items-center justify-center ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+              disabled={mutation.isPending}
+              className={`mt-4 w-full flex items-center justify-center ${mutation.isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {isSubmitting ? (
+              {mutation.isPending ? (
                 <>
                   <svg
                     className="mr-2 h-4 w-4 animate-spin text-white"
@@ -301,7 +312,7 @@ export function RegisterPage() {
 
           <Button
             type="button"
-            disabled={isSubmitting}
+            disabled={mutation.isPending}
             onClick={() => {
               navigate(ROUTES.DASHBOARD);
             }}

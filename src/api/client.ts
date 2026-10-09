@@ -44,6 +44,7 @@ async function request<T>(
 
   const response = await fetch(url, {
     ...restOptions,
+    credentials: 'include',
     headers: requestHeaders,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });

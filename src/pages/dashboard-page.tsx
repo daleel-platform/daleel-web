@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { TextInput } from '@/components/text-input';
@@ -21,7 +23,34 @@ const matchedMentors = [
 ];
 
 export function DashboardPage() {
+  const [userName, setUserName] = useState('');
+  const navigate = useNavigate();
   const profileCompletion = 60;
+
+  useEffect(() => {
+    const storedUserData = localStorage.getItem('userData');
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+      setUserName(parsedData.name);
+    } else {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('userData');
+    localStorage.removeItem('authToken');
+    navigate('/login');
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return '';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,16 +60,18 @@ export function DashboardPage() {
         </Text>
         <div className="flex items-center gap-3">
           <TextInput placeholder="Search mentors" className="w-56" />
-
-          <div className="bg-secondary flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white">
-            SM
+          <Button variant="ghost" size="sm" onClick={handleLogout}>
+            Log out
+          </Button>
+          <div className="bg-secondary flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium text-white uppercase">
+            {getInitials(userName)}
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl space-y-10 px-8 py-10">
         <div>
-          <Text variant="h1">Good afternoon, Sara</Text>
+          <Text variant="h1">Good afternoon, {userName}</Text>
           <Text variant="muted" className="mt-1">
             Your next mentoring session is coming up.
           </Text>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router-dom';
 import { useResetPassword } from '@/features/auth/hooks/use-reset-password';
 import { ApiError } from '@/api/errors';
 import { Button } from '@/components/button';

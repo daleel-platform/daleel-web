@@ -1,15 +1,36 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation } from '@tanstack/react-query';
 import { Text } from '@/components/text';
 import { Button } from '@/components/button';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
+import { apiClient } from '@/api/client';
+import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants';
+
+interface AuthResponse {
+  accessToken: string;
+  user: any;
+}
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const navigate = useNavigate();
+
+  const mutation = useMutation({
+    mutationFn: (credentials: { email: string; password: string }) =>
+      apiClient.post<AuthResponse>('/auth/login', credentials),
+    onSuccess: (data) => {
+      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.accessToken);
+      localStorage.setItem('userData', JSON.stringify(data.user));
+      navigate(ROUTES.DASHBOARD);
+    },
+    onError: (error: any) => {
+      setEmailError(error.message || 'Invalid email or password');
+    },
+  });
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -36,18 +57,15 @@ export function LoginPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-
               setEmailError('');
 
               const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
               if (!emailRegex.test(email)) {
                 setEmailError('Please enter a valid email address');
                 return;
               }
 
-              // TODO: connect to auth
-              navigate(ROUTES.DASHBOARD);
+              mutation.mutate({ email, password });
             }}
             className="space-y-5"
           >
@@ -106,8 +124,12 @@ export function LoginPage() {
               </Link>
             </div>
 
-            <Button type="submit" className="mt-6 w-full">
-              Sign In
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="mt-6 w-full"
+            >
+              {mutation.isPending ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
 
@@ -120,7 +142,6 @@ export function LoginPage() {
           <Button
             type="button"
             onClick={() => {
-              // TODO: connect to Google auth
               navigate(ROUTES.DASHBOARD);
             }}
             className="mt-6 flex w-full items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
