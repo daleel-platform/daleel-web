@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router';
 import { ForgotPasswordPage } from '@/pages/forgot-password-page';
 import { ResetPasswordPage } from '@/pages/reset-password-page';
 import { ROUTES } from '@/routes/paths';

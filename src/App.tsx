@@ -1,5 +1,5 @@
 import { AppRouter } from '@/routes/app-router';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router';
 import { LoginPage } from './pages/login-page';
 import { RegisterPage } from './pages/register-page';
 import { DashboardPage } from './pages/dashboard-page';

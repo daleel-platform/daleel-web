@@ -1,36 +1,20 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { Text } from '@/components/text';
 import { Button } from '@/components/button';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
-import { apiClient } from '@/api/client';
-import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants';
-
-interface AuthResponse {
-  accessToken: string;
-  user: any;
-}
+import { useLogin } from '@/features/auth/hooks/use-login';
+import type { ApiError } from '@/api/errors';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
-  const navigate = useNavigate();
 
-  const mutation = useMutation({
-    mutationFn: (credentials: { email: string; password: string }) =>
-      apiClient.post<AuthResponse>('/auth/login', credentials),
-    onSuccess: (data) => {
-      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.accessToken);
-      localStorage.setItem('userData', JSON.stringify(data.user));
-      navigate(ROUTES.DASHBOARD);
-    },
-    onError: (error: any) => {
-      setEmailError(error.message || 'Invalid email or password');
-    },
-  });
+  const { mutate, isPending } = useLogin();
+  const navigate = useNavigate();
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -65,7 +49,17 @@ export function LoginPage() {
                 return;
               }
 
-              mutation.mutate({ email, password });
+              mutate(
+                { email, password },
+                {
+                  onError: (error) => {
+                    const apiError = error as ApiError;
+                    setEmailError(
+                      apiError.message || 'Invalid email or password',
+                    );
+                  },
+                },
+              );
             }}
             className="space-y-5"
           >
@@ -124,12 +118,8 @@ export function LoginPage() {
               </Link>
             </div>
 
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-              className="mt-6 w-full"
-            >
-              {mutation.isPending ? 'Signing In...' : 'Sign In'}
+            <Button type="submit" disabled={isPending} className="mt-6 w-full">
+              {isPending ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
 

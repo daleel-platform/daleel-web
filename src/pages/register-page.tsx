@@ -1,17 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router';
 import { Text } from '@/components/text';
 import { Button } from '@/components/button';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
-import { apiClient } from '@/api/client';
-import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants';
-
-interface AuthResponse {
-  accessToken: string;
-  user: any;
-}
+import { useRegister } from '@/features/auth/hooks/use-register';
+import type { ApiError } from '@/api/errors';
 
 export function RegisterPage() {
   const [firstName, setFirstName] = useState('');
@@ -33,22 +27,8 @@ export function RegisterPage() {
   });
   const [globalError, setGlobalError] = useState('');
 
+  const { mutate, isPending } = useRegister();
   const navigate = useNavigate();
-
-  const mutation = useMutation({
-    mutationFn: (userData: any) =>
-      apiClient.post<AuthResponse>('/auth/register', userData),
-    onSuccess: (data) => {
-      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.accessToken);
-      localStorage.setItem('userData', JSON.stringify(data.user));
-      navigate(ROUTES.DASHBOARD);
-    },
-    onError: (error: any) => {
-      setGlobalError(
-        error.message || 'Something went wrong. Please try again later.',
-      );
-    },
-  });
 
   const validateForm = () => {
     let isValid = true;
@@ -82,18 +62,30 @@ export function RegisterPage() {
     validateForm();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setTouched({ email: true, password: true, confirmPassword: true });
 
     if (validateForm()) {
       setGlobalError('');
 
-      mutation.mutate({
-        name: `${firstName} ${lastName}`.trim(),
-        email,
-        password,
-      });
+      mutate(
+        {
+          name: `${firstName} ${lastName}`.trim(),
+          email,
+          password,
+          //role,
+        },
+        {
+          onError: (error) => {
+            const apiError = error as ApiError;
+            setGlobalError(
+              apiError.message ||
+                'Something went wrong. Please try again later.',
+            );
+          },
+        },
+      );
     }
   };
 
@@ -271,10 +263,10 @@ export function RegisterPage() {
 
             <Button
               type="submit"
-              disabled={mutation.isPending}
-              className={`mt-4 w-full flex items-center justify-center ${mutation.isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
+              disabled={isPending}
+              className={`mt-4 w-full flex items-center justify-center ${isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {mutation.isPending ? (
+              {isPending ? (
                 <>
                   <svg
                     className="mr-2 h-4 w-4 animate-spin text-white"
@@ -312,7 +304,7 @@ export function RegisterPage() {
 
           <Button
             type="button"
-            disabled={mutation.isPending}
+            disabled={isPending}
             onClick={() => {
               navigate(ROUTES.DASHBOARD);
             }}

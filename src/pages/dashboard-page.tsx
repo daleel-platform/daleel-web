@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { TextInput } from '@/components/text-input';
+import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants';
+import { ROUTES } from '@/routes/paths';
 
 const matchedMentors = [
   {
@@ -33,14 +35,14 @@ export function DashboardPage() {
       const parsedData = JSON.parse(storedUserData);
       setUserName(parsedData.name);
     } else {
-      navigate('/login');
+      navigate(ROUTES.LOGIN);
     }
   }, [navigate]);
 
   const handleLogout = () => {
+    localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     localStorage.removeItem('userData');
-    localStorage.removeItem('authToken');
-    navigate('/login');
+    navigate(ROUTES.LOGIN);
   };
 
   const getInitials = (name: string) => {

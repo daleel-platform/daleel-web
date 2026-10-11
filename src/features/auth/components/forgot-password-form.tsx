@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ApiError } from '@/api/errors';
 import { useForgotPassword } from '@/features/auth/hooks/use-forgot-password';
 import { Button } from '@/components/button';
