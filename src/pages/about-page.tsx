@@ -84,6 +84,12 @@ export function AboutPage() {
             >
               Featured Mentors
             </a>
+            <Link
+              to={`${ROUTES.REGISTER}?intent=mentor`}
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-teal-700"
+            >
+              Become a Mentor
+            </Link>
             <a
               href="#why-daleel"
               className="text-sm font-medium text-slate-600 transition-colors hover:text-teal-700"
@@ -119,14 +125,7 @@ export function AboutPage() {
             <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
               {/* Left Column: Headlines & Call to Actions */}
               <div className="lg:col-span-7 flex flex-col items-start">
-                <div className="inline-flex items-center gap-2 rounded-full border border-teal-200/80 bg-teal-50 px-3.5 py-1 text-xs font-semibold text-teal-800 shadow-2xs">
-                  <Compass className="h-3.5 w-3.5 text-teal-600" />
-                  <span>The Career Mentorship Compass</span>
-                  <span className="h-1 w-1 rounded-full bg-teal-600" />
-                  <span className="text-teal-700">دليل</span>
-                </div>
-
-                <h1 className="mt-6 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl md:leading-[1.12]">
+                <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl md:leading-[1.12]">
                   Navigate your career path with{' '}
                   <span className="text-teal-700 underline decoration-amber-400 decoration-wavy decoration-2 underline-offset-8">
                     senior mentors
@@ -141,19 +140,19 @@ export function AboutPage() {
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center gap-4">
-                  <Link to={ROUTES.REGISTER}>
+                  <Link to={`${ROUTES.REGISTER}?intent=mentee`}>
                     <Button
                       size="lg"
                       variant="primary"
                       rightIcon={<ArrowRight className="h-4 w-4" />}
                     >
-                      Find Your Mentor
+                      Find a Mentor
                     </Button>
                   </Link>
 
-                  <Link to={ROUTES.LOGIN}>
+                  <Link to={`${ROUTES.REGISTER}?intent=mentor`}>
                     <Button size="lg" variant="outline">
-                      Explore Directory
+                      Become a Mentor
                     </Button>
                   </Link>
                 </div>
@@ -548,7 +547,7 @@ export function AboutPage() {
               </p>
 
               <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-                <Link to={ROUTES.REGISTER}>
+                <Link to={`${ROUTES.REGISTER}?intent=mentee`}>
                   <Button
                     variant="accent"
                     size="lg"
@@ -557,13 +556,13 @@ export function AboutPage() {
                     Join Daleel for Free
                   </Button>
                 </Link>
-                <Link to={ROUTES.LOGIN}>
+                <Link to={`${ROUTES.REGISTER}?intent=mentor`}>
                   <Button
                     variant="ghost"
                     size="lg"
                     className="text-white hover:bg-white/10 hover:text-white"
                   >
-                    Sign In
+                    Apply as a Mentor
                   </Button>
                 </Link>
               </div>
@@ -591,7 +590,10 @@ export function AboutPage() {
               </h4>
               <ul className="mt-3 space-y-2 text-xs text-slate-600">
                 <li>
-                  <Link to={ROUTES.REGISTER} className="hover:text-teal-700">
+                  <Link
+                    to={`${ROUTES.REGISTER}?intent=mentee`}
+                    className="hover:text-teal-700"
+                  >
                     Find Mentors
                   </Link>
                 </li>
@@ -601,7 +603,10 @@ export function AboutPage() {
                   </a>
                 </li>
                 <li>
-                  <Link to={ROUTES.REGISTER} className="hover:text-teal-700">
+                  <Link
+                    to={`${ROUTES.REGISTER}?intent=mentor`}
+                    className="hover:text-teal-700"
+                  >
                     Become a Mentor
                   </Link>
                 </li>

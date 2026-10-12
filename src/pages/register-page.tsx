@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { ArrowRight, Lock, Mail, Star, User } from 'lucide-react';
 
 import { Avatar } from '@/components/avatar';
@@ -21,6 +21,8 @@ import type { ApiError } from '@/api/errors';
 
 export function RegisterPage() {
   const [globalError, setGlobalError] = useState('');
+  const [searchParams] = useSearchParams();
+  const isMentorIntent = searchParams.get('intent') === 'mentor';
   const { mutate, isPending } = useRegister();
 
   const {
@@ -32,8 +34,7 @@ export function RegisterPage() {
     resolver: zodResolver(registerSchema),
     mode: 'onTouched',
     defaultValues: {
-      firstName: '',
-      lastName: '',
+      name: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -47,7 +48,7 @@ export function RegisterPage() {
 
     mutate(
       {
-        name: `${data.firstName} ${data.lastName}`.trim(),
+        name: data.name.trim(),
         email: data.email,
         password: data.password,
       },
@@ -119,23 +120,29 @@ export function RegisterPage() {
         {/* Center: Quote & Value Proposition */}
         <div className="relative z-10 my-auto max-w-lg">
           <Badge variant="accent" size="sm" className="mb-4">
-            Join 10,000+ Professionals
+            {isMentorIntent ? 'Mentor Community' : 'Join 10,000+ Professionals'}
           </Badge>
           <blockquote className="text-2xl font-semibold text-white/95 leading-relaxed tracking-tight">
-            "Mentorship is not about having all the answers — it's about asking
-            the right questions and learning from someone who walked the road
-            before."
+            {isMentorIntent
+              ? '"The most rewarding aspect of leadership is seeing someone you guided make breakthroughs they didn\'t think were possible."'
+              : '"Mentorship is not about having all the answers — it\'s about asking the right questions and learning from someone who walked the road before."'}
           </blockquote>
 
           <div className="mt-8 flex items-center gap-4">
             <Avatar
-              name="Nourhan Magdy"
+              name={isMentorIntent ? 'Sarah Mansour' : 'Nourhan Magdy'}
               size="lg"
               className="ring-2 ring-white/20"
             />
             <div>
-              <p className="font-bold text-white text-sm">Nourhan Magdy</p>
-              <p className="text-xs text-teal-200">Product Manager at Fawry</p>
+              <p className="font-bold text-white text-sm">
+                {isMentorIntent ? 'Sarah Mansour' : 'Nourhan Magdy'}
+              </p>
+              <p className="text-xs text-teal-200">
+                {isMentorIntent
+                  ? 'Staff Engineer at Stripe'
+                  : 'Product Manager at Fawry'}
+              </p>
               <div className="mt-1 flex items-center gap-1 text-amber-400">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="h-3 w-3 fill-current" />
@@ -147,18 +154,37 @@ export function RegisterPage() {
 
         {/* Bottom Checklist */}
         <div className="relative z-10 space-y-2 border-t border-white/10 pt-6 text-xs text-teal-200">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-400 font-bold">✓</span>
-            <span>Free to browse and match with vetted mentors</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-amber-400 font-bold">✓</span>
-            <span>One account for both learning and mentoring</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-amber-400 font-bold">✓</span>
-            <span>Structured 1-on-1 private video sessions</span>
-          </div>
+          {isMentorIntent ? (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-bold">✓</span>
+                <span>Give back and sharpen your leadership skills</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-bold">✓</span>
+                <span>Set your own availability and session rates</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-bold">✓</span>
+                <span>Connect with driven talent across the region</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-bold">✓</span>
+                <span>Free to browse and match with vetted mentors</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-bold">✓</span>
+                <span>One account for both learning and mentoring</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-amber-400 font-bold">✓</span>
+                <span>Structured 1-on-1 private video sessions</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -173,10 +199,39 @@ export function RegisterPage() {
           </div>
 
           <div className="mb-8">
-            <Text variant="h1">Start your journey</Text>
+            <Text variant="h1">
+              {isMentorIntent ? 'Apply as a Mentor' : 'Start your journey'}
+            </Text>
             <p className="mt-2 text-sm text-slate-500">
-              Create your account to start discovering mentors tailored to your
-              goals.
+              {isMentorIntent
+                ? 'Create your account to share your expertise and guide aspiring professionals.'
+                : 'Create your account to start discovering mentors tailored to your goals.'}
+            </p>
+            {/* Subtle intent switcher */}
+            <p className="mt-2 text-xs text-slate-500">
+              {isMentorIntent ? (
+                <>
+                  Looking to find a mentor instead?{' '}
+                  <Link
+                    to={`${ROUTES.REGISTER}?intent=mentee`}
+                    replace
+                    className="font-medium text-teal-700 hover:text-teal-800 hover:underline transition-colors"
+                  >
+                    Sign up as mentee
+                  </Link>
+                </>
+              ) : (
+                <>
+                  Want to share your expertise?{' '}
+                  <Link
+                    to={`${ROUTES.REGISTER}?intent=mentor`}
+                    replace
+                    className="font-medium text-teal-700 hover:text-teal-800 hover:underline transition-colors"
+                  >
+                    Apply as a mentor
+                  </Link>
+                </>
+              )}
             </p>
           </div>
 
@@ -187,28 +242,18 @@ export function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="flex gap-3">
-              <div className="w-1/2">
-                <TextInput
-                  label="First Name"
-                  type="text"
-                  id="firstName"
-                  placeholder="Ali"
-                  leftIcon={<User className="h-4 w-4" />}
-                  error={errors.firstName?.message}
-                  {...register('firstName')}
-                />
-              </div>
-              <div className="w-1/2">
-                <TextInput
-                  label="Last Name"
-                  type="text"
-                  id="lastName"
-                  placeholder="Hassan"
-                  error={errors.lastName?.message}
-                  {...register('lastName')}
-                />
-              </div>
+            <div>
+              <TextInput
+                label="Full Name"
+                type="text"
+                id="name"
+                placeholder={
+                  isMentorIntent ? 'e.g. Sarah Mansour' : 'e.g. Ali Hassan'
+                }
+                leftIcon={<User className="h-4 w-4" />}
+                error={errors.name?.message}
+                {...register('name')}
+              />
             </div>
 
             <div>
@@ -260,7 +305,7 @@ export function RegisterPage() {
                 !isPending ? <ArrowRight className="h-4 w-4" /> : undefined
               }
             >
-              Create Account
+              {isMentorIntent ? 'Join as Mentor' : 'Create Account'}
             </Button>
           </form>
 
