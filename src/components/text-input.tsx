@@ -1,4 +1,5 @@
 import { cn } from '@/utils/cn';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import {
   useId,
   useState,
@@ -11,6 +12,8 @@ export interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   helperText?: string;
   error?: string;
   leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
+  required?: boolean;
 }
 
 export function TextInput({
@@ -22,6 +25,8 @@ export function TextInput({
   className,
   disabled,
   leftIcon,
+  rightIcon,
+  required,
   ...props
 }: TextInputProps) {
   const generatedId = useId();
@@ -38,18 +43,22 @@ export function TextInput({
       {label && (
         <label
           htmlFor={inputId}
-          className="text-xs font-semibold text-slate-700"
+          className="text-xs font-semibold text-slate-700 select-none flex items-center justify-between"
         >
-          {label}
+          <span>
+            {label}
+            {required && <span className="ml-1 text-red-500">*</span>}
+          </span>
         </label>
       )}
 
-      <div className="relative">
+      <div className="relative flex items-center">
         {leftIcon && (
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+          <span className="pointer-events-none absolute left-3.5 flex items-center text-slate-400">
             {leftIcon}
           </span>
         )}
+
         <input
           id={inputId}
           type={resolvedType}
@@ -57,20 +66,25 @@ export function TextInput({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : helperText ? helperId : undefined}
           className={cn(
-            'w-full px-3 py-2 text-sm rounded-lg border bg-white transition-all',
-            'bg-white',
-            'border-slate-300',
-            'text-slate-900',
-            'border-slate-300',
-            'focus:outline-none focus:ring-2 focus:border-transparent',
-            'disabled:opacity-50 disabled:bg-slate-100 disabled:cursor-not-allowed',
-            error ? 'border-error focus:ring-error' : 'focus:ring-primary',
-            leftIcon && 'pl-10',
-            isPassword && 'pr-10',
+            'w-full rounded-xl border bg-white px-3.5 py-2 text-sm text-slate-900 transition-all duration-150',
+            'placeholder:text-slate-400 shadow-2xs',
+            'border-slate-300/90 hover:border-slate-400',
+            'focus:outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10',
+            'disabled:opacity-60 disabled:bg-slate-50 disabled:cursor-not-allowed',
+            error &&
+              'border-red-400 text-slate-900 focus:border-red-500 focus:ring-red-500/10',
+            leftIcon ? 'pl-10' : 'pl-3.5',
+            isPassword || rightIcon ? 'pr-10' : 'pr-3.5',
             className,
           )}
           {...props}
         />
+
+        {rightIcon && !isPassword && (
+          <span className="pointer-events-none absolute right-3.5 flex items-center text-slate-400">
+            {rightIcon}
+          </span>
+        )}
 
         {isPassword && (
           <button
@@ -78,55 +92,27 @@ export function TextInput({
             tabIndex={-1}
             onClick={() => setShowPassword((prev) => !prev)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
-            className="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+            className="absolute right-2.5 flex items-center p-1 text-slate-400 hover:text-slate-600 transition-colors rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
           >
             {showPassword ? (
-              /* Eye-off SVG */
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
-                />
-              </svg>
+              <EyeOff className="h-4 w-4" aria-hidden="true" />
             ) : (
-              /* Eye SVG */
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
+              <Eye className="h-4 w-4" aria-hidden="true" />
             )}
           </button>
         )}
       </div>
 
       {error ? (
-        <p id={errorId} className="text-xs text-error">
-          {error}
+        <p
+          id={errorId}
+          className="flex items-center gap-1.5 text-xs font-medium text-red-600 animate-in fade-in duration-150"
+        >
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
         </p>
       ) : helperText ? (
-        <p id={helperId} className="text-xs text-slate-500">
+        <p id={helperId} className="text-xs text-slate-500 leading-normal">
           {helperText}
         </p>
       ) : null}

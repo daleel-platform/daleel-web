@@ -4,7 +4,6 @@ export const ROUTES = {
   REGISTER: '/register',
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
-  DASHBOARD: '/dashboard',
   MENTORS: '/mentors',
   MENTOR_DETAILS: (id: string) => `/mentors/${id}`,
   SESSIONS: '/sessions',
