@@ -1,27 +1,36 @@
 import { cn } from '@/utils/cn';
+import { Loader2 } from 'lucide-react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'accent' | 'danger';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   loading?: boolean;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
   children: ReactNode;
 }
 
 const variantStyles: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary:
-    'border border-transparent bg-primary text-white hover:bg-primary-hover shadow-sm',
+    'bg-teal-700 text-white hover:bg-teal-800 active:bg-teal-900 shadow-xs shadow-teal-900/10 focus-visible:ring-teal-700 border border-teal-800/20',
   secondary:
-    'border border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200',
+    'bg-slate-100 text-slate-800 hover:bg-slate-200/80 active:bg-slate-300 border border-slate-200/80 focus-visible:ring-slate-400',
   outline:
-    'border border-primary text-primary hover:bg-primary hover:text-white',
-  ghost: 'border border-transparent text-slate-600 hover:bg-slate-100',
+    'bg-white text-slate-700 border border-slate-300 hover:border-teal-600 hover:text-teal-800 hover:bg-teal-50/40 active:bg-teal-50 focus-visible:ring-teal-700 shadow-2xs',
+  ghost:
+    'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200/70 border border-transparent focus-visible:ring-slate-400',
+  accent:
+    'bg-amber-500 text-slate-950 font-bold hover:bg-amber-600 active:bg-amber-700 shadow-xs shadow-amber-900/10 focus-visible:ring-amber-500 border border-amber-600/30',
+  danger:
+    'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 shadow-xs shadow-red-900/10 focus-visible:ring-red-600 border border-red-700/30',
 };
 
 const sizeStyles: Record<NonNullable<ButtonProps['size']>, string> = {
-  sm: 'px-2.5 py-1.5 text-xs rounded-md',
-  md: 'px-4 py-2 text-sm rounded-lg',
-  lg: 'px-6 py-3 text-base rounded-lg',
+  xs: 'px-2.5 py-1 text-xs rounded-lg gap-1.5',
+  sm: 'px-3 py-1.5 text-xs font-medium rounded-lg gap-1.5',
+  md: 'px-4 py-2 text-sm font-semibold rounded-xl gap-2',
+  lg: 'px-6 py-2.5 text-base font-semibold rounded-xl gap-2.5',
 };
 
 export function Button({
@@ -29,6 +38,8 @@ export function Button({
   size = 'md',
   loading = false,
   disabled,
+  leftIcon,
+  rightIcon,
   className,
   children,
   ...props
@@ -39,36 +50,24 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading}
       className={cn(
-        'inline-flex items-center justify-center align-middle font-medium transition-colors cursor-pointer',
-        'disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+        'inline-flex items-center justify-center align-middle transition-all duration-150 select-none cursor-pointer',
+        'active:scale-[0.985] disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
         variantStyles[variant],
         sizeStyles[size],
         className,
       )}
       {...props}
     >
-      {loading && (
-        <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8v8H4z"
-          />
-        </svg>
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden="true" />
+      ) : (
+        leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>
       )}
-      {children}
+      <span>{children}</span>
+      {!loading && rightIcon && (
+        <span className="inline-flex shrink-0">{rightIcon}</span>
+      )}
     </button>
   );
 }

@@ -15,7 +15,7 @@ export function useLogin() {
     onSuccess: (data) => {
       setAuthToken(data.accessToken);
       queryClient.setQueryData(authQueryKeys.currentUser(), data.user);
-      navigate(ROUTES.DASHBOARD);
+      navigate(ROUTES.MENTORS);
     },
   });
 }

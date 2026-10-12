@@ -2,8 +2,11 @@
 
 This is the Daleel frontend — a React 19 + Vite web application for a mentorship platform.
 
-Before writing or modifying code, read [CONVENTIONS.md](./CONVENTIONS.md) for coding standards and project patterns.
-For domain terminology, refer to [CONTEXT.md](./CONTEXT.md).
+Before writing or modifying code:
+
+- Read [CONVENTIONS.md](./CONVENTIONS.md) for coding standards and project patterns.
+- Read [DESIGN.md](./DESIGN.md) for UI/UX guidelines, design tokens, and reusable primitives before touching any UI.
+- For domain terminology, refer to [CONTEXT.md](./CONTEXT.md).
 
 ---
 
