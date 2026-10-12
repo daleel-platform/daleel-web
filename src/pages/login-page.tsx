@@ -195,18 +195,7 @@ export function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  id="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 rounded-md border-slate-300 text-teal-700 focus:ring-teal-600 cursor-pointer"
-                />
-                <span className="text-xs text-slate-600 font-medium">
-                  Remember me
-                </span>
-              </label>
-
+            <div className="flex justify-end pt-1">
               <Link
                 to={ROUTES.FORGOT_PASSWORD}
                 className="text-xs font-semibold text-teal-700 hover:text-teal-800 hover:underline transition-colors"
