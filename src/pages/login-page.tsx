@@ -1,105 +1,43 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
 import { Text } from '@/components/text';
 import { Button } from '@/components/button';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
 import { useLogin } from '@/features/auth/hooks/use-login';
+import {
+  loginSchema,
+  type LoginFormData,
+} from '@/features/auth/schemas/auth.schemas';
 import type { ApiError } from '@/api/errors';
 
 export function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
   const [formError, setFormError] = useState('');
-  const [touched, setTouched] = useState({ email: false, password: false });
-
   const { mutate, isPending } = useLogin();
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
 
-  const handleEmailChange = (value: string) => {
-    setEmail(value);
-    if (formError) setFormError('');
-    if (touched.email) {
-      if (!value.trim()) {
-        setEmailError('Email address is required');
-      } else if (!emailRegex.test(value)) {
-        setEmailError('Please enter a valid email address');
-      } else {
-        setEmailError('');
-      }
-    }
-  };
-
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
-    if (formError) setFormError('');
-    if (touched.password) {
-      if (!value) {
-        setPasswordError('Password is required');
-      } else {
-        setPasswordError('');
-      }
-    }
-  };
-
-  const handleEmailBlur = () => {
-    setTouched((prev) => ({ ...prev, email: true }));
-    if (!email.trim()) {
-      setEmailError('Email address is required');
-    } else if (!emailRegex.test(email)) {
-      setEmailError('Please enter a valid email address');
-    } else {
-      setEmailError('');
-    }
-  };
-
-  const handlePasswordBlur = () => {
-    setTouched((prev) => ({ ...prev, password: true }));
-    if (!password) {
-      setPasswordError('Password is required');
-    } else {
-      setPasswordError('');
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setTouched({ email: true, password: true });
+  const onSubmit = (data: LoginFormData) => {
     setFormError('');
-
-    let hasError = false;
-
-    if (!email.trim()) {
-      setEmailError('Email address is required');
-      hasError = true;
-    } else if (!emailRegex.test(email)) {
-      setEmailError('Please enter a valid email address');
-      hasError = true;
-    } else {
-      setEmailError('');
-    }
-
-    if (!password) {
-      setPasswordError('Password is required');
-      hasError = true;
-    } else {
-      setPasswordError('');
-    }
-
-    if (hasError) return;
-
-    mutate(
-      { email, password },
-      {
-        onError: (error) => {
-          const apiError = error as ApiError;
-          setFormError(apiError.message || 'Invalid email or password');
-        },
+    mutate(data, {
+      onError: (error) => {
+        const apiError = error as ApiError;
+        setFormError(apiError.message || 'Invalid email or password');
       },
-    );
+    });
   };
 
   return (
@@ -130,18 +68,15 @@ export function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <TextInput
                 id="email"
                 label="Email Address"
                 type="email"
-                value={email}
                 placeholder="name@example.com"
-                onChange={(e) => handleEmailChange(e.target.value)}
-                onBlur={handleEmailBlur}
-                error={emailError}
-                required
+                error={errors.email?.message}
+                {...register('email')}
               />
             </div>
 
@@ -151,11 +86,8 @@ export function LoginPage() {
                 label="Password"
                 type="password"
                 placeholder="Enter your password"
-                value={password}
-                onChange={(e) => handlePasswordChange(e.target.value)}
-                onBlur={handlePasswordBlur}
-                error={passwordError}
-                required
+                error={errors.password?.message}
+                {...register('password')}
               />
             </div>
 
