@@ -1,8 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useResetPassword } from '@/features/auth/hooks/use-reset-password';
 import { PasswordRulesList } from '@/features/auth/components/password-rules-list';
-import { isPasswordValid } from '@/features/auth/utils/password-validator';
+import {
+  resetPasswordSchema,
+  type ResetPasswordFormData,
+} from '@/features/auth/schemas/auth.schemas';
 import { ApiError } from '@/api/errors';
 import { Button } from '@/components/button';
 import { Text } from '@/components/text';
@@ -10,12 +15,6 @@ import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
 
 export function ResetPasswordForm() {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [touched, setTouched] = useState({
-    password: false,
-    confirmPassword: false,
-  });
   const [searchParams] = useSearchParams();
   const [tokenError, setTokenError] = useState('');
   const navigate = useNavigate();
@@ -26,6 +25,22 @@ export function ResetPasswordForm() {
     isSuccess,
     error,
   } = useResetPassword();
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  const passwordValue = useWatch({ control, name: 'password' }) ?? '';
 
   useEffect(() => {
     if (isSuccess) {
@@ -49,37 +64,7 @@ export function ResetPasswordForm() {
 
   const submitError = tokenError || apiError;
 
-  // Live validation
-  const errors = useMemo(() => {
-    const errs = { password: '', confirmPassword: '' };
-
-    if (!password) {
-      errs.password = 'Password is required';
-    } else if (!isPasswordValid(password)) {
-      errs.password = 'Password does not meet all requirements';
-    }
-
-    if (!confirmPassword) {
-      errs.confirmPassword = 'Confirm password is required';
-    } else if (password !== confirmPassword) {
-      errs.confirmPassword = 'Passwords do not match';
-    }
-
-    return errs;
-  }, [password, confirmPassword]);
-
-  const confirmPasswordError =
-    (touched.confirmPassword || confirmPassword.length > 0) &&
-    errors.confirmPassword
-      ? errors.confirmPassword
-      : undefined;
-
-  const passwordError =
-    touched.password && errors.password ? errors.password : undefined;
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setTouched({ password: true, confirmPassword: true });
+  function onSubmit(data: ResetPasswordFormData) {
     setTokenError('');
 
     if (!token) {
@@ -87,11 +72,7 @@ export function ResetPasswordForm() {
       return;
     }
 
-    if (!isPasswordValid(password) || password !== confirmPassword) {
-      return;
-    }
-
-    submitResetPassword({ password, token });
+    submitResetPassword({ password: data.password, token });
   }
 
   if (isSuccess) {
@@ -138,19 +119,18 @@ export function ResetPasswordForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div>
           <TextInput
             label="New Password"
             type="password"
             placeholder="Enter your new password"
-            value={password}
-            error={passwordError}
-            onChange={(e) => setPassword(e.target.value)}
-            onBlur={() => setTouched((p) => ({ ...p, password: true }))}
-            required
+            error={errors.password?.message}
+            {...register('password')}
           />
-          {password.length > 0 && <PasswordRulesList password={password} />}
+          {passwordValue.length > 0 && (
+            <PasswordRulesList password={passwordValue} />
+          )}
         </div>
 
         <div>
@@ -158,15 +138,12 @@ export function ResetPasswordForm() {
             label="Confirm Password"
             type="password"
             placeholder="Confirm your new password"
-            value={confirmPassword}
-            error={confirmPasswordError}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            onBlur={() => setTouched((p) => ({ ...p, confirmPassword: true }))}
-            required
+            error={errors.confirmPassword?.message}
+            {...register('confirmPassword')}
           />
         </div>
 
-        <Button type="submit" className="mt-6 w-full" disabled={isPending}>
+        <Button type="submit" className="mt-6 w-full" loading={isPending}>
           {isPending ? 'Resetting Password...' : 'Reset Password'}
         </Button>
       </form>

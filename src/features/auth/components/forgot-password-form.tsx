@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
 import { ApiError } from '@/api/errors';
 import { useForgotPassword } from '@/features/auth/hooks/use-forgot-password';
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordFormData,
+} from '@/features/auth/schemas/auth.schemas';
 import { Button } from '@/components/button';
 import { Text } from '@/components/text';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
   const {
     mutate: submitForgotPassword,
     isPending,
@@ -17,29 +20,29 @@ export function ForgotPasswordForm() {
     error,
   } = useForgotPassword();
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      email: '',
+    },
+  });
+
   const submitError =
     error instanceof ApiError
       ? error.message
       : error
         ? 'Something went wrong. Please try again.'
         : '';
-  function handleSubmit() {
-    setEmailError('');
 
-    if (!email.trim()) {
-      setEmailError('Email is required');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-      setEmailError('Invalid email address');
-      return;
-    }
-
-    submitForgotPassword({ email: email.trim() });
+  function onSubmit(data: ForgotPasswordFormData) {
+    submitForgotPassword({ email: data.email.trim() });
   }
+
   if (isSuccess) {
     return (
       <div className="w-full max-w-md">
@@ -64,31 +67,25 @@ export function ForgotPasswordForm() {
       <Text variant="body-sm" className="mt-2">
         Enter your email address to reset your password.
       </Text>
-      <div className="mt-6">
-        <TextInput
-          label="Email"
-          type="email"
-          placeholder="name@example.com"
-          value={email}
-          onChange={(event) => {
-            setEmail(event.target.value);
-            if (emailError) setEmailError('');
-          }}
-          error={emailError}
-        />
-      </div>
-      {submitError && (
-        <Text variant="body-sm" className="mt-4 text-red-600">
-          {submitError}
-        </Text>
-      )}
-      <Button
-        className="mt-6 w-full"
-        loading={isPending}
-        onClick={handleSubmit}
-      >
-        Send reset link
-      </Button>
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-6">
+        <div>
+          <TextInput
+            label="Email"
+            type="email"
+            placeholder="name@example.com"
+            error={errors.email?.message}
+            {...register('email')}
+          />
+        </div>
+        {submitError && (
+          <Text variant="body-sm" className="mt-4 text-red-600">
+            {submitError}
+          </Text>
+        )}
+        <Button type="submit" className="mt-6 w-full" loading={isPending}>
+          Send reset link
+        </Button>
+      </form>
       <Link
         to={ROUTES.LOGIN}
         className="mt-4 block text-center text-sm text-primary hover:underline"

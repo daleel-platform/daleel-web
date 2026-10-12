@@ -23,6 +23,7 @@ src/
 │       ├── components/         # Domain-specific UI components
 │       ├── hooks/              # Custom & TanStack Query hooks
 │       ├── api/                # Domain-specific API caller functions
+│       ├── schemas/            # Domain-specific Zod schemas & form types
 │       └── types/              # Domain-specific interfaces & DTO shapes
 ├── hooks/                      # Reusable utility hooks (useDebounce.ts, etc.)
 ├── pages/                      # Thin page composition shells (1:1 with URLs)
@@ -107,3 +108,8 @@ All domain-specific code lives under `src/features/`. Do not put business logic 
 - **Centralized Route Constants**: Define all route paths as constants in `src/routes/paths.ts` (e.g., `ROUTES.HOME`, `ROUTES.MENTORS`) instead of hardcoding route path strings across pages and components.
 - **Dynamic Paths**: For parameterized paths, export helper functions (e.g., `ROUTES.MENTOR_PROFILE: (id: string) => \`/mentors/${id}\``).
 - **Layout Shells**: Reusable layout shells (e.g., root shell, authenticated dashboard shell) live under `src/routes/layouts/`.
+
+### 7. Forms & Validation
+
+- **React Hook Form & Zod**: Use `react-hook-form` paired with `zod` (`@hookform/resolvers/zod`) for all inputs and forms. Prefer `mode: 'onTouched'`.
+- **Schemas**: Colocate validation schemas in `src/features/<feature>/schemas/<feature>.schemas.ts`.
