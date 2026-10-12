@@ -1,17 +1,20 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { register } from '../api/auth.api';
 import { ROUTES } from '@/routes/paths';
-import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants';
+import { useAuth } from './use-auth';
+import { authQueryKeys } from './query-keys';
 
 export function useRegister() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { login: setAuthToken } = useAuth();
 
   return useMutation({
     mutationFn: register,
     onSuccess: (data) => {
-      localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, data.accessToken);
-      localStorage.setItem('userData', JSON.stringify(data.user));
+      setAuthToken(data.accessToken);
+      queryClient.setQueryData(authQueryKeys.currentUser(), data.user);
       navigate(ROUTES.DASHBOARD);
     },
   });

@@ -4,6 +4,7 @@ import type {
   ForgotPasswordDto,
   ResetPasswordDto,
   MessageResponse,
+  User,
 } from '@/features/auth/types/auth';
 
 export const login = (data: LoginDto) => {
@@ -22,4 +23,8 @@ export function forgotPassword(
 
 export function resetPassword(dto: ResetPasswordDto): Promise<MessageResponse> {
   return apiClient.post<MessageResponse>('/auth/reset-password', dto);
+}
+
+export function getCurrentUser(): Promise<User> {
+  return apiClient.get<User>('/users/me');
 }

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 import { Link } from 'react-router';
 import { Text } from '@/components/text';
 import { Button } from '@/components/button';
@@ -12,9 +11,96 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [touched, setTouched] = useState({ email: false, password: false });
 
   const { mutate, isPending } = useLogin();
-  const navigate = useNavigate();
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (formError) setFormError('');
+    if (touched.email) {
+      if (!value.trim()) {
+        setEmailError('Email address is required');
+      } else if (!emailRegex.test(value)) {
+        setEmailError('Please enter a valid email address');
+      } else {
+        setEmailError('');
+      }
+    }
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (formError) setFormError('');
+    if (touched.password) {
+      if (!value) {
+        setPasswordError('Password is required');
+      } else {
+        setPasswordError('');
+      }
+    }
+  };
+
+  const handleEmailBlur = () => {
+    setTouched((prev) => ({ ...prev, email: true }));
+    if (!email.trim()) {
+      setEmailError('Email address is required');
+    } else if (!emailRegex.test(email)) {
+      setEmailError('Please enter a valid email address');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    setTouched((prev) => ({ ...prev, password: true }));
+    if (!password) {
+      setPasswordError('Password is required');
+    } else {
+      setPasswordError('');
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setTouched({ email: true, password: true });
+    setFormError('');
+
+    let hasError = false;
+
+    if (!email.trim()) {
+      setEmailError('Email address is required');
+      hasError = true;
+    } else if (!emailRegex.test(email)) {
+      setEmailError('Please enter a valid email address');
+      hasError = true;
+    } else {
+      setEmailError('');
+    }
+
+    if (!password) {
+      setPasswordError('Password is required');
+      hasError = true;
+    } else {
+      setPasswordError('');
+    }
+
+    if (hasError) return;
+
+    mutate(
+      { email, password },
+      {
+        onError: (error) => {
+          const apiError = error as ApiError;
+          setFormError(apiError.message || 'Invalid email or password');
+        },
+      },
+    );
+  };
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -38,60 +124,37 @@ export function LoginPage() {
             </Text>
           </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setEmailError('');
+          {formError && (
+            <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+              {formError}
+            </div>
+          )}
 
-              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (!emailRegex.test(email)) {
-                setEmailError('Please enter a valid email address');
-                return;
-              }
-
-              mutate(
-                { email, password },
-                {
-                  onError: (error) => {
-                    const apiError = error as ApiError;
-                    setEmailError(
-                      apiError.message || 'Invalid email or password',
-                    );
-                  },
-                },
-              );
-            }}
-            className="space-y-5"
-          >
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label
-                htmlFor="email"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                Email Address
-              </label>
               <TextInput
                 id="email"
+                label="Email Address"
                 type="email"
                 value={email}
                 placeholder="name@example.com"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => handleEmailChange(e.target.value)}
+                onBlur={handleEmailBlur}
                 error={emailError}
                 required
               />
             </div>
+
             <div>
-              <label
-                htmlFor="password"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
               <TextInput
                 id="password"
+                label="Password"
                 type="password"
+                placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                onBlur={handlePasswordBlur}
+                error={passwordError}
                 required
               />
             </div>
@@ -122,27 +185,6 @@ export function LoginPage() {
               {isPending ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
-
-          <div className="mt-6 flex items-center justify-center space-x-4">
-            <span className="h-px w-full bg-gray-200"></span>
-            <span className="text-sm text-gray-500">or</span>
-            <span className="h-px w-full bg-gray-200"></span>
-          </div>
-
-          <Button
-            type="button"
-            onClick={() => {
-              navigate(ROUTES.DASHBOARD);
-            }}
-            className="mt-6 flex w-full items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-          >
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              alt="Google"
-              className="h-5 w-5"
-            />
-            Sign in with Google
-          </Button>
 
           <div className="mt-8 text-center">
             <Text variant="body-sm" className="text-gray-600">
