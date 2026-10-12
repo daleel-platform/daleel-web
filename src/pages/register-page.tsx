@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router';
 import { Text } from '@/components/text';
 import { Button } from '@/components/button';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
 import { useRegister } from '@/features/auth/hooks/use-register';
+import { PasswordRulesList } from '@/features/auth/components/password-rules-list';
+import { isPasswordValid } from '@/features/auth/utils/password-validator';
 import type { ApiError } from '@/api/errors';
 
 export function RegisterPage() {
@@ -15,12 +17,9 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'mentee' | 'mentor'>('mentee');
 
-  const [errors, setErrors] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
   const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
     email: false,
     password: false,
     confirmPassword: false,
@@ -28,45 +27,64 @@ export function RegisterPage() {
   const [globalError, setGlobalError] = useState('');
 
   const { mutate, isPending } = useRegister();
-  const navigate = useNavigate();
 
-  const validateForm = () => {
-    let isValid = true;
-    const newErrors = { email: '', password: '', confirmPassword: '' };
+  // Pure live validation derived from state
+  const errors = useMemo(() => {
+    const errs = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    };
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.com$/;
-    if (!emailRegex.test(email)) {
-      newErrors.email = 'name@example.com';
-      isValid = false;
+    if (!firstName.trim()) {
+      errs.firstName = 'First name is required';
     }
 
-    const passwordRegex =
-      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{}|;:,.<>?]).{8,}$/;
-    if (!passwordRegex.test(password)) {
-      newErrors.password =
-        'At least 8 characters, 1 uppercase, 1 number, and 1 special character';
-      isValid = false;
+    if (!lastName.trim()) {
+      errs.lastName = 'Last name is required';
     }
 
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-      isValid = false;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      errs.email = 'Email address is required';
+    } else if (!emailRegex.test(email)) {
+      errs.email = 'Please enter a valid email address';
     }
 
-    setErrors(newErrors);
-    return isValid;
-  };
+    if (!password) {
+      errs.password = 'Password is required';
+    } else if (!isPasswordValid(password)) {
+      errs.password = 'Password does not meet all requirements';
+    }
+
+    if (!confirmPassword) {
+      errs.confirmPassword = 'Confirm password is required';
+    } else if (password !== confirmPassword) {
+      errs.confirmPassword = 'Passwords do not match';
+    }
+
+    return errs;
+  }, [firstName, lastName, email, password, confirmPassword]);
+
+  const isValid = !Object.values(errors).some(Boolean);
 
   const handleBlur = (field: keyof typeof touched) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    validateForm();
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setTouched({ email: true, password: true, confirmPassword: true });
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
 
-    if (validateForm()) {
+    if (isValid) {
       setGlobalError('');
 
       mutate(
@@ -74,7 +92,6 @@ export function RegisterPage() {
           name: `${firstName} ${lastName}`.trim(),
           email,
           password,
-          //role,
         },
         {
           onError: (error) => {
@@ -88,6 +105,26 @@ export function RegisterPage() {
       );
     }
   };
+
+  // Live confirm password error: show immediately if typed or blurred
+  const confirmPasswordError =
+    (touched.confirmPassword || confirmPassword.length > 0) &&
+    errors.confirmPassword
+      ? errors.confirmPassword
+      : undefined;
+
+  // Live password error: show after blur if invalid
+  const passwordError =
+    touched.password && errors.password ? errors.password : undefined;
+
+  // Live email error: show if touched and invalid
+  const emailError = touched.email && errors.email ? errors.email : undefined;
+
+  const firstNameError =
+    touched.firstName && errors.firstName ? errors.firstName : undefined;
+
+  const lastNameError =
+    touched.lastName && errors.lastName ? errors.lastName : undefined;
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -155,116 +192,93 @@ export function RegisterPage() {
 
             <div className="flex gap-4">
               <div className="w-1/2">
-                <label
-                  htmlFor="firstName"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  First Name
-                </label>
                 <TextInput
+                  label="First Name"
                   type="text"
                   id="firstName"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  error={firstNameError}
+                  onChange={(e) => {
+                    setFirstName(e.target.value);
+                    if (globalError) setGlobalError('');
+                  }}
+                  onBlur={() => handleBlur('firstName')}
                   required
                 />
               </div>
               <div className="w-1/2">
-                <label
-                  htmlFor="lastName"
-                  className="mb-1 block text-sm font-medium text-gray-700"
-                >
-                  Last Name
-                </label>
                 <TextInput
+                  label="Last Name"
                   type="text"
                   id="lastName"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  error={lastNameError}
+                  onChange={(e) => {
+                    setLastName(e.target.value);
+                    if (globalError) setGlobalError('');
+                  }}
+                  onBlur={() => handleBlur('lastName')}
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label
-                htmlFor="email"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                Email Address
-              </label>
               <TextInput
+                label="Email Address"
                 type="email"
                 id="email"
+                placeholder="name@example.com"
                 value={email}
+                error={emailError}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  validateForm();
+                  if (globalError) setGlobalError('');
                 }}
                 onBlur={() => handleBlur('email')}
                 required
               />
-              {touched.email && errors.email && (
-                <span className="text-xs text-red-500 mt-1 block">
-                  {errors.email}
-                </span>
-              )}
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
               <TextInput
+                label="Password"
                 type="password"
                 id="password"
                 value={password}
+                error={passwordError}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  validateForm();
+                  if (globalError) setGlobalError('');
                 }}
                 onBlur={() => handleBlur('password')}
                 required
               />
-              {touched.password && errors.password && (
-                <span className="text-xs text-red-500 mt-1 block">
-                  {errors.password}
-                </span>
-              )}
+              {password.length > 0 && <PasswordRulesList password={password} />}
             </div>
 
             <div>
-              <label
-                htmlFor="confirmPassword"
-                className="mb-1 block text-sm font-medium text-gray-700"
-              >
-                Confirm Password
-              </label>
               <TextInput
+                label="Confirm Password"
                 type="password"
                 id="confirmPassword"
                 value={confirmPassword}
+                error={confirmPasswordError}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value);
-                  validateForm();
+                  if (globalError) setGlobalError('');
                 }}
                 onBlur={() => handleBlur('confirmPassword')}
                 required
               />
-              {touched.confirmPassword && errors.confirmPassword && (
-                <span className="text-xs text-red-500 mt-1 block">
-                  {errors.confirmPassword}
-                </span>
-              )}
             </div>
 
             <Button
               type="submit"
               disabled={isPending}
-              className={`mt-4 w-full flex items-center justify-center ${isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
+              className={`mt-4 w-full flex items-center justify-center ${
+                isPending ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             >
               {isPending ? (
                 <>
@@ -281,12 +295,12 @@ export function RegisterPage() {
                       r="10"
                       stroke="currentColor"
                       strokeWidth="4"
-                    ></circle>
+                    />
                     <path
                       className="opacity-75"
                       fill="currentColor"
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                    />
                   </svg>
                   Creating Account...
                 </>
@@ -295,28 +309,6 @@ export function RegisterPage() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 flex items-center justify-center space-x-4">
-            <span className="h-px w-full bg-gray-200"></span>
-            <span className="text-sm text-gray-500">or</span>
-            <span className="h-px w-full bg-gray-200"></span>
-          </div>
-
-          <Button
-            type="button"
-            disabled={isPending}
-            onClick={() => {
-              navigate(ROUTES.DASHBOARD);
-            }}
-            className="mt-6 flex w-full items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              alt="Google"
-              className="h-5 w-5"
-            />
-            Sign up with Google
-          </Button>
 
           <div className="mt-8 text-center">
             <Text variant="body-sm" className="text-gray-600">

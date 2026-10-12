@@ -2,7 +2,13 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role?: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  interests?: string[];
+  mentorProfile?: unknown | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 export interface RegisterDto {
   name: string;

@@ -70,7 +70,10 @@ export function ForgotPasswordForm() {
           type="email"
           placeholder="name@example.com"
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            if (emailError) setEmailError('');
+          }}
           error={emailError}
         />
       </div>
