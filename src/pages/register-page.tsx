@@ -4,6 +4,8 @@ import { Text } from '@/components/text';
 import { Button } from '@/components/button';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
+import { useRegister } from '@/features/auth/hooks/use-register';
+import type { ApiError } from '@/api/errors';
 
 export function RegisterPage() {
   const [firstName, setFirstName] = useState('');
@@ -13,7 +15,6 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'mentee' | 'mentor'>('mentee');
 
-  // States for errors and interactions
   const [errors, setErrors] = useState({
     email: '',
     password: '',
@@ -24,9 +25,9 @@ export function RegisterPage() {
     password: false,
     confirmPassword: false,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [globalError, setGlobalError] = useState('');
 
+  const { mutate, isPending } = useRegister();
   const navigate = useNavigate();
 
   const validateForm = () => {
@@ -56,32 +57,35 @@ export function RegisterPage() {
     return isValid;
   };
 
-  // دالة بتشتغل لما اليوزر يطلع بره الخانة
   const handleBlur = (field: keyof typeof touched) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     validateForm();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // نظهر كل الأخطاء لو داس Submit من غير ما يمر على الحقول
     setTouched({ email: true, password: true, confirmPassword: true });
 
     if (validateForm()) {
-      setIsSubmitting(true);
-      setGlobalError(''); // نفضي أي أخطاء قديمة
+      setGlobalError('');
 
-      try {
-        // محاكاة لطلب السيرفر بياخد ثانيتين
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // هنا المفروض نربط بالـ API الحقيقي
-        navigate(ROUTES.DASHBOARD);
-      } catch (error) {
-        setGlobalError('Something went wrong. Please try again later.');
-      } finally {
-        setIsSubmitting(false); // نرجع الزرار لشكله الطبيعي
-      }
+      mutate(
+        {
+          name: `${firstName} ${lastName}`.trim(),
+          email,
+          password,
+          //role,
+        },
+        {
+          onError: (error) => {
+            const apiError = error as ApiError;
+            setGlobalError(
+              apiError.message ||
+                'Something went wrong. Please try again later.',
+            );
+          },
+        },
+      );
     }
   };
 
@@ -108,7 +112,6 @@ export function RegisterPage() {
             </Text>
           </div>
 
-          {/* Banner for generic submission failures */}
           {globalError && (
             <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600">
               {globalError}
@@ -260,10 +263,10 @@ export function RegisterPage() {
 
             <Button
               type="submit"
-              disabled={isSubmitting}
-              className={`mt-4 w-full flex items-center justify-center ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+              disabled={isPending}
+              className={`mt-4 w-full flex items-center justify-center ${isPending ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {isSubmitting ? (
+              {isPending ? (
                 <>
                   <svg
                     className="mr-2 h-4 w-4 animate-spin text-white"
@@ -301,7 +304,7 @@ export function RegisterPage() {
 
           <Button
             type="button"
-            disabled={isSubmitting}
+            disabled={isPending}
             onClick={() => {
               navigate(ROUTES.DASHBOARD);
             }}

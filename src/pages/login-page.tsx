@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 import { Text } from '@/components/text';
 import { Button } from '@/components/button';
 import { TextInput } from '@/components/text-input';
 import { ROUTES } from '@/routes/paths';
+import { useLogin } from '@/features/auth/hooks/use-login';
+import type { ApiError } from '@/api/errors';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
+
+  const { mutate, isPending } = useLogin();
   const navigate = useNavigate();
 
   return (
@@ -36,18 +41,25 @@ export function LoginPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-
               setEmailError('');
 
               const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
               if (!emailRegex.test(email)) {
                 setEmailError('Please enter a valid email address');
                 return;
               }
 
-              // TODO: connect to auth
-              navigate(ROUTES.DASHBOARD);
+              mutate(
+                { email, password },
+                {
+                  onError: (error) => {
+                    const apiError = error as ApiError;
+                    setEmailError(
+                      apiError.message || 'Invalid email or password',
+                    );
+                  },
+                },
+              );
             }}
             className="space-y-5"
           >
@@ -106,8 +118,8 @@ export function LoginPage() {
               </Link>
             </div>
 
-            <Button type="submit" className="mt-6 w-full">
-              Sign In
+            <Button type="submit" disabled={isPending} className="mt-6 w-full">
+              {isPending ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>
 
@@ -120,7 +132,6 @@ export function LoginPage() {
           <Button
             type="button"
             onClick={() => {
-              // TODO: connect to Google auth
               navigate(ROUTES.DASHBOARD);
             }}
             className="mt-6 flex w-full items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
