@@ -30,6 +30,7 @@ export function DashboardLayout() {
     { label: 'My Sessions', to: ROUTES.SESSIONS, icon: Calendar },
     { label: 'Messages', to: ROUTES.MESSAGES, icon: MessageSquare },
   ];
+  const hasMentorProfile = Boolean(user?.mentorProfile);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -79,18 +80,24 @@ export function DashboardLayout() {
               </kbd>
             </div>
 
-            <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={<Sparkles className="h-3.5 w-3.5 text-amber-500" />}
-                className="border-teal-200 text-teal-800 hover:bg-teal-50 hover:border-teal-300"
-              >
-                Become a Mentor
-              </Button>
-            </Link>
+            {!hasMentorProfile && (
+              <>
+                <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    leftIcon={
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    }
+                    className="border-teal-200 text-teal-800 hover:bg-teal-50 hover:border-teal-300"
+                  >
+                    Become a Mentor
+                  </Button>
+                </Link>
 
-            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+                <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+              </>
+            )}
 
             <Link
               to={ROUTES.PROFILE}

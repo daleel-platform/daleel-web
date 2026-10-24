@@ -75,11 +75,14 @@ const ProfilePage: React.FC = () => {
   });
 
   const userData = userProfile?.data || userProfile || {};
-  const currentSkills =
-    userData.mentorProfile?.skills ||
-    userData.topics ||
-    userData.interests ||
-    [];
+
+  const hasMentorProfile = Boolean(userData.mentorProfile);
+  const isMentor = userData.mentorProfile?.isActive ?? false;
+
+  const currentSkills: string[] = hasMentorProfile
+    ? (userData.mentorProfile?.skills ?? [])
+    : (userData.interests ?? []);
+
   const fullName =
     userData.name ||
     `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
@@ -97,19 +100,16 @@ const ProfilePage: React.FC = () => {
         token = token.replace(/^["']|["']$/g, '');
       }
 
-      const response = await fetch(
-        `http://localhost:3000/api/v1/users/${userData.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-          body: JSON.stringify({
-            name: newName,
-          }),
+      const response = await fetch('http://localhost:3000/api/v1/users/me', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
-      );
+        body: JSON.stringify({
+          name: newName,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.text();
@@ -128,77 +128,89 @@ const ProfilePage: React.FC = () => {
 
   const addTopicMutation = useMutation({
     mutationFn: async (newTopic: string) => {
+      const updatedTopics = [...currentSkills, newTopic];
+
       let token = localStorage.getItem('daleel_auth_token');
       if (token) {
         token = token.replace(/^["']|["']$/g, '');
       }
 
-      const updatedTopics = [...currentSkills, newTopic];
+      const endpoint = hasMentorProfile
+        ? 'http://localhost:3000/api/v1/mentors/me'
+        : 'http://localhost:3000/api/v1/users/me';
 
-      const response = await fetch(
-        `http://localhost:3000/api/v1/users/${userData.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-          body: JSON.stringify({
-            interests: updatedTopics,
-          }),
+      const body = hasMentorProfile
+        ? { skills: updatedTopics }
+        : { interests: updatedTopics };
+
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
-      );
+        body: JSON.stringify(body),
+      });
 
       if (!response.ok) {
         const errorData = await response.text();
         throw new Error(errorData);
       }
+
       return response.json();
     },
+
     onSuccess: () => {
       setIsTopicModalOpen(false);
       setTopicInput('');
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
     },
+
     onError: (error: Error) => {
-      alert(`Update failed: ${error.message}`);
+      alert(`Add failed: ${error.message}`);
     },
   });
 
   const removeTopicMutation = useMutation({
     mutationFn: async (topicToRemove: string) => {
+      const updatedTopics = currentSkills.filter(
+        (topic) => topic !== topicToRemove,
+      );
+
       let token = localStorage.getItem('daleel_auth_token');
       if (token) {
         token = token.replace(/^["']|["']$/g, '');
       }
 
-      const updatedTopics = currentSkills.filter(
-        (topic: string) => topic !== topicToRemove,
-      );
+      const endpoint = hasMentorProfile
+        ? 'http://localhost:3000/api/v1/mentors/me'
+        : 'http://localhost:3000/api/v1/users/me';
 
-      const response = await fetch(
-        `http://localhost:3000/api/v1/users/${userData.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-          body: JSON.stringify({
-            interests: updatedTopics,
-          }),
+      const body = hasMentorProfile
+        ? { skills: updatedTopics }
+        : { interests: updatedTopics };
+
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
         },
-      );
+        body: JSON.stringify(body),
+      });
 
       if (!response.ok) {
         const errorData = await response.text();
         throw new Error(errorData);
       }
+
       return response.json();
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
     },
+
     onError: (error: Error) => {
       alert(`Delete failed: ${error.message}`);
     },
@@ -262,11 +274,9 @@ const ProfilePage: React.FC = () => {
 
   const userEmail = userData.email || '';
   const userAvatar = userData.avatarUrl || null;
-  const isMentor = userData.mentorProfile?.isActive ?? false;
   const headline =
     userData.mentorProfile?.headline ||
-    'Aspiring technology professional actively expanding knowledge through 1-on-1 mentorship.';
-
+    'Passionate learner actively exploring new skills and growing through Daleel community.';
   const initials = fullName
     ? fullName
         .split(' ')
@@ -369,7 +379,9 @@ const ProfilePage: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-gray-400" />{' '}
-                {isMentor ? 'Mentoring Skills' : 'Topics I Want to Learn'}
+                {hasMentorProfile
+                  ? 'Mentoring Skills'
+                  : 'Topics I Want to Learn'}
               </h2>
               <button
                 onClick={() => setIsTopicModalOpen(true)}
@@ -380,7 +392,7 @@ const ProfilePage: React.FC = () => {
             </div>
 
             <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-              {isMentor
+              {hasMentorProfile
                 ? 'These are the domains you are offering mentorship in based on your profile.'
                 : "These topics guide Daleel's recommendation engine when suggesting mentors for you."}
             </p>
@@ -411,7 +423,7 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {!isMentor && (
+        {!hasMentorProfile && (
           <div className="bg-white rounded-2xl p-8 border border-teal-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-teal-600"></div>
             <div>
