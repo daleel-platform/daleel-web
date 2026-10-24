@@ -1,5 +1,4 @@
 import { Navigate } from 'react-router';
-import { DaleelLogo } from '@/components/logo';
 import { ROUTES } from '@/routes/paths';
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
 import { MenteeOnboardingWizard } from '@/features/onboarding/components/mentee-onboarding-wizard';
@@ -21,16 +20,12 @@ export function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/70 flex flex-col justify-between py-10 px-4 sm:px-6">
-      <header className="flex justify-center">
-        <DaleelLogo size="md" />
-      </header>
-
-      <main className="flex justify-center my-auto py-6">
+    <div className="min-h-screen bg-slate-50/70 flex flex-col justify-between py-6 px-4 sm:px-6">
+      <main className="flex justify-center my-auto py-2">
         <MenteeOnboardingWizard />
       </main>
 
-      <footer className="text-center text-xs text-slate-400">
+      <footer className="text-center text-xs text-slate-400 py-2">
         &copy; {CURRENT_YEAR} Daleel Platform. All rights reserved.
       </footer>
     </div>
