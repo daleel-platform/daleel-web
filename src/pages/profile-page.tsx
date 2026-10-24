@@ -407,8 +407,20 @@ const ProfilePage: React.FC = () => {
                     {topic}
                     <button
                       onClick={() => removeTopicMutation.mutate(topic)}
-                      disabled={removeTopicMutation.isPending}
-                      className="text-teal-500 hover:text-red-500 transition-colors ml-1 focus:outline-none"
+                      disabled={
+                        removeTopicMutation.isPending ||
+                        (hasMentorProfile && currentSkills.length === 1)
+                      }
+                      className={`ml-1 focus:outline-none transition-colors ${
+                        hasMentorProfile && currentSkills.length === 1
+                          ? 'text-gray-300 cursor-not-allowed'
+                          : 'text-teal-500 hover:text-red-500'
+                      }`}
+                      title={
+                        hasMentorProfile && currentSkills.length === 1
+                          ? 'A mentor must have at least one skill'
+                          : 'Remove'
+                      }
                     >
                       <X className="w-3 h-3" />
                     </button>
