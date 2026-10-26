@@ -2,20 +2,14 @@ import { Navigate } from 'react-router';
 import { ROUTES } from '@/routes/paths';
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
 import { MenteeOnboardingWizard } from '@/features/onboarding/components/mentee-onboarding-wizard';
-import { isOnboardingDismissed } from '@/features/onboarding/utils/onboarding-storage';
 
 const CURRENT_YEAR = new Date().getFullYear();
 
 export function OnboardingPage() {
   const { data: user, isLoading } = useCurrentUser();
 
-  // If already dismissed or user already has interests set, redirect to mentors
-  if (
-    !isLoading &&
-    user &&
-    (isOnboardingDismissed(user.id) ||
-      (user.interests && user.interests.length > 0))
-  ) {
+  // Only redirect to mentors if the user has ALREADY COMPLETED their profile
+  if (!isLoading && user && user.interests && user.interests.length > 0) {
     return <Navigate to={ROUTES.MENTORS} replace />;
   }
 

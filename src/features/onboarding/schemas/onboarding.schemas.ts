@@ -16,8 +16,9 @@ export const menteeOnboardingSchema = z.object({
     )
     .optional(),
   interests: z
-    .array(z.string().trim())
-    .min(1, 'Please select at least one topic you would like guidance on'),
+    .array(z.string().trim().min(1, 'Topic cannot be empty'))
+    .min(1, 'Please select at least one topic you would like guidance on')
+    .max(5, 'You can select up to 5 topics'),
   bio: z.string().trim().max(500, 'Bio cannot exceed 500 characters'),
 });
 

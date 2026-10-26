@@ -1,4 +1,4 @@
-import { useState, useRef, type ChangeEvent } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, Link } from 'react-router';
@@ -27,7 +27,8 @@ import { InterestSelector } from './interest-selector';
 
 export function MenteeOnboardingWizard() {
   const navigate = useNavigate();
-  const { data: user } = useCurrentUser();
+  const { data: user, isLoading: isUserLoading } = useCurrentUser();
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const updateProfileMutation = useUpdateMenteeProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -50,8 +51,12 @@ export function MenteeOnboardingWizard() {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      const newUrl = URL.createObjectURL(file);
       setValue('file', file, { shouldValidate: true });
-      setPreviewUrl(URL.createObjectURL(file));
+      setPreviewUrl(newUrl);
     }
   };
 
@@ -65,6 +70,14 @@ export function MenteeOnboardingWizard() {
       fileInputRef.current.value = '';
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const bioValue = useWatch({ control, name: 'bio' }) ?? '';
   const watchedInterests = useWatch({ control, name: 'interests' }) ?? [];
@@ -83,7 +96,13 @@ export function MenteeOnboardingWizard() {
   };
 
   const onSubmit = (data: MenteeOnboardingFormData) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setSubmitError(
+        'Unable to save: user profile is not loaded. Please refresh.',
+      );
+      return;
+    }
+    setSubmitError(null);
 
     updateProfileMutation.mutate(
       {
@@ -200,7 +219,7 @@ export function MenteeOnboardingWizard() {
                 </h4>
                 <p className="text-[11px] text-slate-500 leading-relaxed">
                   Mentors love knowing who they are speaking with. You can
-                  change or remove this anytime in your profile settings.
+                  change or remove this at any time.
                 </p>
                 <div className="flex items-center justify-center sm:justify-start gap-3 pt-1">
                   <Button
@@ -255,11 +274,16 @@ export function MenteeOnboardingWizard() {
                 <span className="text-red-500 font-bold text-xs">*</span>
               </div>
               <Badge
-                variant={watchedInterests.length > 0 ? 'primary' : 'default'}
+                variant={
+                  watchedInterests.length === 5
+                    ? 'accent'
+                    : watchedInterests.length > 0
+                      ? 'primary'
+                      : 'default'
+                }
                 size="sm"
               >
-                {watchedInterests.length}{' '}
-                {watchedInterests.length === 1 ? 'topic' : 'topics'} selected
+                {watchedInterests.length}/5 topics selected
               </Badge>
             </div>
 
@@ -284,9 +308,12 @@ export function MenteeOnboardingWizard() {
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[10px] font-extrabold text-white shadow-2xs">
                   03
                 </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                <label
+                  htmlFor="bio"
+                  className="text-xs font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
+                >
                   Introduce Yourself
-                </span>
+                </label>
                 <span className="text-[11px] font-medium text-slate-400">
                   (Optional)
                 </span>
@@ -305,15 +332,23 @@ export function MenteeOnboardingWizard() {
               id="bio"
               rows={3}
               {...register('bio')}
+              aria-describedby={errors.bio ? 'bio-error' : undefined}
+              aria-invalid={Boolean(errors.bio)}
               placeholder="e.g. Junior software developer passionate about cloud infrastructure, looking for career guidance and interview prep."
               className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all resize-none leading-relaxed"
             />
             {errors.bio && (
-              <p className="text-xs text-red-600 font-medium">
+              <p id="bio-error" className="text-xs text-red-600 font-medium">
                 {errors.bio.message}
               </p>
             )}
           </div>
+
+          {submitError && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+              {submitError}
+            </div>
+          )}
 
           {updateProfileMutation.isError && (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
@@ -340,6 +375,9 @@ export function MenteeOnboardingWizard() {
             type="submit"
             variant="primary"
             size="md"
+            disabled={
+              !user?.id || isUserLoading || updateProfileMutation.isPending
+            }
             loading={updateProfileMutation.isPending}
             rightIcon={<ArrowRight className="h-4 w-4" />}
           >

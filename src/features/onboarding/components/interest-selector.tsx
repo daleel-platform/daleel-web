@@ -32,11 +32,18 @@ export function InterestSelector({
   hideHeader = false,
 }: InterestSelectorProps) {
   const [customInput, setCustomInput] = useState('');
+  const [limitWarning, setLimitWarning] = useState(false);
 
   const toggleTopic = (topic: string) => {
     if (selectedInterests.includes(topic)) {
+      setLimitWarning(false);
       onChange(selectedInterests.filter((t) => t !== topic));
     } else {
+      if (selectedInterests.length >= 5) {
+        setLimitWarning(true);
+        return;
+      }
+      setLimitWarning(false);
       onChange([...selectedInterests, topic]);
     }
   };
@@ -44,7 +51,12 @@ export function InterestSelector({
   const handleAddCustom = () => {
     const trimmed = customInput.trim();
     if (!trimmed) return;
+    if (selectedInterests.length >= 5) {
+      setLimitWarning(true);
+      return;
+    }
     if (!selectedInterests.includes(trimmed)) {
+      setLimitWarning(false);
       onChange([...selectedInterests, trimmed]);
     }
     setCustomInput('');
@@ -73,15 +85,20 @@ export function InterestSelector({
               <span className="text-red-500 font-bold">*</span>
             </label>
             <Badge
-              variant={selectedInterests.length > 0 ? 'primary' : 'default'}
+              variant={
+                selectedInterests.length === 5
+                  ? 'accent'
+                  : selectedInterests.length > 0
+                    ? 'primary'
+                    : 'default'
+              }
               size="sm"
             >
-              {selectedInterests.length}{' '}
-              {selectedInterests.length === 1 ? 'topic' : 'topics'} selected
+              {selectedInterests.length}/5 topics selected
             </Badge>
           </div>
           <p className="mt-0.5 text-[11px] text-slate-500">
-            Select 2 to 5 topics to train your recommendation engine.
+            Select 1 to 5 topics you want guidance on.
           </p>
         </div>
       )}
@@ -114,6 +131,13 @@ export function InterestSelector({
         })}
       </div>
 
+      {(limitWarning || selectedInterests.length >= 5) && (
+        <p className="text-[11px] text-amber-800 font-medium bg-amber-50 border border-amber-200/80 rounded-lg px-2.5 py-1.5 animate-in fade-in duration-200">
+          You can select up to 5 topics. Deselect one to choose a different
+          topic.
+        </p>
+      )}
+
       {/* Custom Topic Input */}
       <div className="pt-1 flex items-center gap-2">
         <div className="relative flex-1">
@@ -122,14 +146,19 @@ export function InterestSelector({
             value={customInput}
             onChange={(e) => setCustomInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Add custom topic (press Enter)..."
-            className="w-full h-8 rounded-lg border border-slate-300 bg-white px-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 transition-colors"
+            disabled={selectedInterests.length >= 5}
+            placeholder={
+              selectedInterests.length >= 5
+                ? 'Maximum 5 topics reached'
+                : 'Add custom topic (press Enter)...'
+            }
+            className="w-full h-8 rounded-lg border border-slate-300 bg-white px-2.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 transition-colors disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
           />
         </div>
         <button
           type="button"
           onClick={handleAddCustom}
-          disabled={!customInput.trim()}
+          disabled={!customInput.trim() || selectedInterests.length >= 5}
           className="h-8 px-3 rounded-lg border border-slate-300 bg-slate-50 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           Add

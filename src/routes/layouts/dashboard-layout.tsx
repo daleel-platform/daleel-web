@@ -97,7 +97,12 @@ export function DashboardLayout() {
               className="flex items-center gap-2.5 rounded-xl p-1.5 transition-colors hover:bg-slate-100"
               title="View your profile"
             >
-              <Avatar name={user?.name} size="sm" status="online" />
+              <Avatar
+                name={user?.name}
+                src={user?.avatarUrl ?? undefined}
+                size="sm"
+                status="online"
+              />
               <div className="hidden text-left lg:block">
                 <p className="text-xs font-bold text-slate-800 leading-none">
                   {user?.name || 'My Account'}

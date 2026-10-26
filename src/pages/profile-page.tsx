@@ -1,5 +1,6 @@
 import { Mail, Sparkles } from 'lucide-react';
-
+import { Link } from 'react-router';
+import { ROUTES } from '@/routes/paths';
 import { Avatar } from '@/components/avatar';
 import { Badge } from '@/components/badge';
 import { Button } from '@/components/button';
@@ -9,16 +10,7 @@ import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
 export function ProfilePage() {
   const { data: user } = useCurrentUser();
 
-  const interests =
-    user?.interests && user.interests.length > 0
-      ? user.interests
-      : [
-          'System Design',
-          'Cloud Architecture',
-          'Career Transitions',
-          'Product Management',
-          'Tech Leadership',
-        ];
+  const interests = user?.interests ?? [];
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8 md:py-10 space-y-8">
@@ -27,6 +19,7 @@ export function ProfilePage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-6">
           <Avatar
             name={user?.name}
+            src={user?.avatarUrl ?? undefined}
             size="xl"
             status="online"
             className="h-20 w-20 ring-4 ring-teal-50"
@@ -48,8 +41,9 @@ export function ProfilePage() {
             </div>
 
             <p className="mt-3 text-xs text-slate-600 leading-relaxed max-w-xl">
-              {user?.bio ||
-                'Aspiring technology professional actively expanding knowledge through 1-on-1 mentorship.'}
+              {user?.bio || (
+                <span className="italic text-slate-400">No bio added yet.</span>
+              )}
             </p>
           </div>
 
@@ -102,21 +96,41 @@ export function ProfilePage() {
             <h2 className="text-sm font-bold text-slate-900">
               Topics I Want to Learn
             </h2>
-            <span className="text-[11px] text-teal-700 font-semibold cursor-pointer hover:underline">
-              Add Topic
-            </span>
+            {interests.length === 0 && (
+              <Link
+                to={ROUTES.ONBOARDING}
+                className="text-[11px] text-teal-700 font-semibold hover:underline"
+              >
+                Complete Onboarding
+              </Link>
+            )}
           </div>
           <p className="text-xs text-slate-500">
             These topics guide Daleel's recommendation engine when suggesting
             mentors for you.
           </p>
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {interests.map((interest) => (
-              <Badge key={interest} variant="primary" size="sm">
-                {interest}
-              </Badge>
-            ))}
-          </div>
+
+          {interests.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {interests.map((interest) => (
+                <Badge key={interest} variant="primary" size="sm">
+                  {interest}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-4 text-center">
+              <p className="text-xs text-slate-500">
+                You haven't added any learning topics yet.
+              </p>
+              <Link
+                to={ROUTES.ONBOARDING}
+                className="mt-2 inline-flex items-center text-xs font-semibold text-teal-700 hover:text-teal-800"
+              >
+                Set your topics in onboarding →
+              </Link>
+            </div>
+          )}
         </Card>
       </div>
 
