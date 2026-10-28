@@ -1,4 +1,3 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 import {
   Calendar,
   Compass,
@@ -7,6 +6,7 @@ import {
   Search,
   Sparkles,
 } from 'lucide-react';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
@@ -14,6 +14,7 @@ import { DaleelLogo } from '@/components/logo';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
 import { ROUTES } from '@/routes/paths';
+import { getMentorStatus } from '@/types/mentor';
 
 export function DashboardLayout() {
   const { logout } = useAuth();
@@ -30,6 +31,8 @@ export function DashboardLayout() {
     { label: 'My Sessions', to: ROUTES.SESSIONS, icon: Calendar },
     { label: 'Messages', to: ROUTES.MESSAGES, icon: MessageSquare },
   ];
+
+  const mentorStatus = getMentorStatus(user?.mentorProfile);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -50,7 +53,7 @@ export function DashboardLayout() {
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all select-none ${
+                      `flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition-all ${
                         isActive
                           ? 'bg-teal-50 text-teal-800 shadow-2xs'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -65,7 +68,7 @@ export function DashboardLayout() {
             </nav>
           </div>
 
-          {/* Right: Quick Search, Become a Mentor CTA, User Info, Actions */}
+          {/* Right: Search, Mentor CTA/Status, Profile & Actions */}
           <div className="flex items-center gap-3">
             <div className="relative hidden sm:block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
@@ -79,25 +82,86 @@ export function DashboardLayout() {
               </kbd>
             </div>
 
-            <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={<Sparkles className="h-3.5 w-3.5 text-amber-500" />}
-                className="border-teal-200 text-teal-800 hover:bg-teal-50 hover:border-teal-300"
-              >
-                Become a Mentor
-              </Button>
-            </Link>
+            {mentorStatus === 'ACTIVE' && (
+              <>
+                <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    leftIcon={
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    }
+                    className="border-amber-200 text-amber-800 bg-amber-50/60 hover:bg-amber-100/70 hover:border-amber-300"
+                  >
+                    Active Mentor
+                  </Button>
+                </Link>
+                <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+              </>
+            )}
 
-            <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+            {mentorStatus === 'PENDING' && (
+              <>
+                <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    leftIcon={
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    }
+                    className="border-amber-200 text-amber-800 bg-amber-50/40 hover:bg-amber-100/50"
+                  >
+                    Mentor Pending
+                  </Button>
+                </Link>
+                <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+              </>
+            )}
+
+            {mentorStatus === 'INACTIVE' && (
+              <>
+                <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-slate-200 text-slate-700 hover:bg-slate-50"
+                  >
+                    Inactive Mentor
+                  </Button>
+                </Link>
+                <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+              </>
+            )}
+
+            {!mentorStatus && (
+              <>
+                <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    leftIcon={
+                      <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    }
+                    className="border-teal-200 text-teal-800 hover:bg-teal-50 hover:border-teal-300"
+                  >
+                    Become a Mentor
+                  </Button>
+                </Link>
+                <div className="h-5 w-px bg-slate-200 hidden sm:block" />
+              </>
+            )}
 
             <Link
               to={ROUTES.PROFILE}
               className="flex items-center gap-2.5 rounded-xl p-1.5 transition-colors hover:bg-slate-100"
               title="View your profile"
             >
-              <Avatar name={user?.name} size="sm" status="online" />
+              <Avatar
+                name={user?.name}
+                src={user?.avatarUrl ?? undefined}
+                size="sm"
+                status="online"
+              />
               <div className="hidden text-left lg:block">
                 <p className="text-xs font-bold text-slate-800 leading-none">
                   {user?.name || 'My Account'}

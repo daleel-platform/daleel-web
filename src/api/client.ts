@@ -36,8 +36,11 @@ async function request<T>(
       ? localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
       : null;
 
+  const isFormData =
+    typeof FormData !== 'undefined' && body instanceof FormData;
+
   const requestHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(headers as Record<string, string>),
   };
@@ -46,7 +49,11 @@ async function request<T>(
     ...restOptions,
     credentials: 'include',
     headers: requestHeaders,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: isFormData
+      ? body
+      : body !== undefined
+        ? JSON.stringify(body)
+        : undefined,
   });
 
   let responseData: unknown = null;

@@ -1,147 +1,140 @@
-import { Mail, Sparkles } from 'lucide-react';
-
-import { Avatar } from '@/components/avatar';
-import { Badge } from '@/components/badge';
+import { useState } from 'react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
+import { useProfile } from '@/features/profile/hooks/use-profile';
+import { ProfileHeader } from '@/features/profile/components/profile-header';
+import { FinishOnboardingBanner } from '@/features/profile/components/finish-onboarding-banner';
+import { ProfileInfoCard } from '@/features/profile/components/profile-info-card';
+import { MenteeInterestsCard } from '@/features/profile/components/mentee-interests-card';
+import { MentorDetailsCard } from '@/features/profile/components/mentor-details-card';
+import { MentorActivationBanner } from '@/features/profile/components/mentor-activation-banner';
+import { EditProfileModal } from '@/features/profile/components/edit-profile-modal';
+import { ApplyMentorModal } from '@/features/profile/components/apply-mentor-modal';
+import { AddTopicModal } from '@/features/profile/components/add-topic-modal';
+import { AddSkillModal } from '@/features/profile/components/add-skill-modal';
 
 export function ProfilePage() {
-  const { data: user } = useCurrentUser();
+  const {
+    data: profile,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useProfile();
 
-  const interests =
-    user?.interests && user.interests.length > 0
-      ? user.interests
-      : [
-          'System Design',
-          'Cloud Architecture',
-          'Career Transitions',
-          'Product Management',
-          'Tech Leadership',
-        ];
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
+  const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
+  const [isMentorModalOpen, setIsMentorModalOpen] = useState(false);
 
-  return (
-    <div className="mx-auto max-w-4xl px-6 py-8 md:py-10 space-y-8">
-      {/* Header Profile Card */}
-      <section className="rounded-3xl border border-slate-200/90 bg-white p-6 md:p-8 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-          <Avatar
-            name={user?.name}
-            size="xl"
-            status="online"
-            className="h-20 w-20 ring-4 ring-teal-50"
-          />
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-600 border-t-transparent" />
+      </div>
+    );
+  }
 
-          <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
-                {user?.name || 'My Profile'}
-              </h1>
-              <Badge variant="primary" size="sm">
-                Active Mentee
-              </Badge>
-            </div>
-
-            <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-              <Mail className="h-3.5 w-3.5 text-slate-400" />
-              <span>{user?.email || '—'}</span>
-            </div>
-
-            <p className="mt-3 text-xs text-slate-600 leading-relaxed max-w-xl">
-              {user?.bio ||
-                'Aspiring technology professional actively expanding knowledge through 1-on-1 mentorship.'}
+  if (isError || !profile) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center p-4">
+        <Card className="max-w-md w-full p-6 text-center space-y-4 border border-slate-200/90 shadow-sm rounded-2xl bg-white">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-8 ring-red-50/50">
+            <AlertCircle className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-900">
+              Failed to load profile
+            </h2>
+            <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+              {error?.message ||
+                'Unable to retrieve your profile information. Please verify your connection.'}
             </p>
           </div>
-
-          <div>
-            <Button variant="outline" size="sm">
-              Edit Profile
+          <div className="pt-2">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => refetch()}
+              loading={isFetching}
+              leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+            >
+              Retry
             </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Profile Details & Career Goals */}
-      <div className="grid gap-6 sm:grid-cols-2">
-        {/* Personal Info */}
-        <Card className="p-6 space-y-4">
-          <h2 className="text-sm font-bold text-slate-900">
-            Personal Information
-          </h2>
-          <div className="space-y-3 text-xs">
-            <div>
-              <span className="text-slate-400 font-medium block">
-                Full Name
-              </span>
-              <span className="text-slate-900 font-semibold mt-0.5 block">
-                {user?.name || '—'}
-              </span>
-            </div>
-            <div>
-              <span className="text-slate-400 font-medium block">
-                Email Address
-              </span>
-              <span className="text-slate-900 font-semibold mt-0.5 block">
-                {user?.email || '—'}
-              </span>
-            </div>
-            <div>
-              <span className="text-slate-400 font-medium block">
-                Account Type
-              </span>
-              <span className="text-teal-700 font-semibold mt-0.5 block">
-                Standard Member (Mentee & Potential Mentor)
-              </span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Interests & Learning Goals */}
-        <Card className="p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-900">
-              Topics I Want to Learn
-            </h2>
-            <span className="text-[11px] text-teal-700 font-semibold cursor-pointer hover:underline">
-              Add Topic
-            </span>
-          </div>
-          <p className="text-xs text-slate-500">
-            These topics guide Daleel's recommendation engine when suggesting
-            mentors for you.
-          </p>
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {interests.map((interest) => (
-              <Badge key={interest} variant="primary" size="sm">
-                {interest}
-              </Badge>
-            ))}
           </div>
         </Card>
       </div>
+    );
+  }
 
-      {/* Become a Mentor Prompt */}
-      <section className="rounded-3xl border border-teal-200/80 bg-gradient-to-r from-teal-50 via-teal-50/40 to-white p-6 md:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 shadow-xs">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-1 text-xs font-bold text-teal-800">
-            <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-            <span>Ready to Share Your Knowledge?</span>
-          </div>
-          <h3 className="text-base font-bold text-slate-900">
-            Activate Your Mentor Profile
-          </h3>
-          <p className="text-xs text-slate-600 max-w-lg leading-relaxed">
-            Create your mentor offerings, set your hourly rate or offer free
-            community sessions, and start guiding the next generation.
-          </p>
+  const hasMentorProfile = Boolean(profile.mentorProfile);
+  const menteeInterests = profile.interests ?? [];
+  const mentorSkills = profile.mentorProfile?.skills ?? [];
+
+  return (
+    <div className="min-h-screen bg-slate-50/50 px-4 py-8 sm:px-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Onboarding Incompletion CTA Banner */}
+        <FinishOnboardingBanner profile={profile} />
+
+        {/* Top Profile Header Hero */}
+        <ProfileHeader
+          profile={profile}
+          onEditClick={() => setIsEditModalOpen(true)}
+        />
+
+        {/* Mentee Profile Data: Personal Details & Learning Interests */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ProfileInfoCard profile={profile} />
+
+          <MenteeInterestsCard
+            interests={menteeInterests}
+            onAddTopicClick={() => setIsTopicModalOpen(true)}
+          />
         </div>
 
-        <div className="shrink-0">
-          <Button variant="primary" size="md">
-            Apply to Become a Mentor
-          </Button>
-        </div>
-      </section>
+        {/* Mentor Section: Either Full Mentor Details or Activation CTA */}
+        {hasMentorProfile && profile.mentorProfile ? (
+          <MentorDetailsCard
+            mentorProfile={profile.mentorProfile}
+            onAddSkillClick={() => setIsSkillModalOpen(true)}
+          />
+        ) : (
+          <MentorActivationBanner
+            onApplyClick={() => setIsMentorModalOpen(true)}
+          />
+        )}
+      </div>
+
+      {/* Feature Modals */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        profile={profile}
+      />
+
+      <ApplyMentorModal
+        isOpen={isMentorModalOpen}
+        onClose={() => setIsMentorModalOpen(false)}
+      />
+
+      <AddTopicModal
+        isOpen={isTopicModalOpen}
+        onClose={() => setIsTopicModalOpen(false)}
+        currentInterests={menteeInterests}
+      />
+
+      {hasMentorProfile && (
+        <AddSkillModal
+          isOpen={isSkillModalOpen}
+          onClose={() => setIsSkillModalOpen(false)}
+          currentSkills={mentorSkills}
+        />
+      )}
     </div>
   );
 }
+
+export default ProfilePage;
