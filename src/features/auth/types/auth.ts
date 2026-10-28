@@ -1,3 +1,5 @@
+import type { MentorProfile } from '@/types/mentor';
+
 export interface User {
   id: string;
   name: string;
@@ -6,24 +8,28 @@ export interface User {
   avatarUrl?: string | null;
   bio?: string | null;
   interests?: string[];
-  mentorProfile?: unknown | null;
+  mentorProfile?: MentorProfile | null;
   createdAt?: string;
   updatedAt?: string;
 }
+
 export interface RegisterDto {
   name: string;
   email: string;
   password: string;
   role?: string;
 }
+
 export interface LoginDto {
   email: string;
   password: string;
 }
+
 export interface AuthResponse {
   accessToken: string;
   user: User;
 }
+
 export interface ForgotPasswordDto {
   email: string;
 }
