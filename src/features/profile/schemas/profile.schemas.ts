@@ -30,28 +30,6 @@ export const editProfileSchema = z.object({
 
 export type EditProfileFormData = z.infer<typeof editProfileSchema>;
 
-export const mentorApplicationSchema = z.object({
-  headline: z
-    .string()
-    .trim()
-    .min(3, 'Professional headline must be at least 3 characters')
-    .max(100, 'Professional headline cannot exceed 100 characters'),
-  yearsOfExperience: z
-    .number()
-    .min(1, 'Years of experience must be at least 1 year')
-    .max(60, 'Years of experience cannot exceed 60 years'),
-  about: z
-    .string()
-    .trim()
-    .min(10, 'About section must be at least 10 characters')
-    .max(1000, 'About section cannot exceed 1000 characters'),
-  skills: z
-    .array(z.string().trim().min(1))
-    .min(1, 'At least one mentoring skill is required'),
-});
-
-export type MentorApplicationFormData = z.infer<typeof mentorApplicationSchema>;
-
 export const addTopicSchema = z.object({
   topic: z
     .string()

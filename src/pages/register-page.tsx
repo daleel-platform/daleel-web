@@ -23,7 +23,9 @@ export function RegisterPage() {
   const [globalError, setGlobalError] = useState('');
   const [searchParams] = useSearchParams();
   const isMentorIntent = searchParams.get('intent') === 'mentor';
-  const { mutate, isPending } = useRegister();
+  const { mutate, isPending } = useRegister(
+    isMentorIntent ? ROUTES.MENTOR_ONBOARDING : ROUTES.ONBOARDING,
+  );
 
   const {
     register,

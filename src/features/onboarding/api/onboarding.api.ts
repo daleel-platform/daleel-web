@@ -1,6 +1,10 @@
 import { apiClient } from '@/api/client';
 import type { User } from '@/features/auth/types/auth';
-import type { UpdateMenteeProfileDto } from '../types/onboarding';
+import type { MentorProfile } from '@/types/mentor';
+import type {
+  CreateMentorProfileDto,
+  UpdateMenteeProfileDto,
+} from '../types/onboarding';
 
 export function updateMenteeProfile(
   _userId: string,
@@ -23,4 +27,10 @@ export function updateMenteeProfile(
     bio: dto.bio,
     interests: dto.interests,
   });
+}
+
+export function createMentorProfile(
+  dto: CreateMentorProfileDto,
+): Promise<MentorProfile> {
+  return apiClient.post<MentorProfile>('/mentors', dto);
 }

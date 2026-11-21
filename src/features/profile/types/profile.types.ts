@@ -21,13 +21,6 @@ export interface UpdateUserProfileDto {
   interests?: string[];
 }
 
-export interface MentorApplicationDto {
-  headline: string;
-  yearsOfExperience: number;
-  about: string;
-  skills: string[];
-}
-
 export interface UpdateMentorProfileDto {
   headline?: string;
   yearsOfExperience?: number;
