@@ -1,4 +1,5 @@
-import { RotateCcw, Search } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
+import { Plus, RotateCcw, Search, X } from 'lucide-react';
 import { Button } from '@/components/button';
 
 const POPULAR_SKILLS = [
@@ -45,28 +46,78 @@ export function MentorFilters({
   onMinExperienceChange,
   onResetAll,
 }: MentorFiltersProps) {
+  const [skillInput, setSkillInput] = useState('');
+
   const hasActiveFilters = Boolean(
     searchQuery.trim() ||
     selectedSkills.length > 0 ||
     minExperience !== undefined,
   );
 
+  const customSelectedSkills = selectedSkills.filter(
+    (skill) =>
+      !POPULAR_SKILLS.some(
+        (preset) => preset.toLowerCase() === skill.toLowerCase(),
+      ),
+  );
+
+  const handleAddCustomSkill = (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = skillInput.trim();
+    if (!trimmed) return;
+
+    const matchingPreset = POPULAR_SKILLS.find(
+      (preset) => preset.toLowerCase() === trimmed.toLowerCase(),
+    );
+    const canonicalSkill = matchingPreset ?? trimmed;
+
+    const alreadySelected = selectedSkills.some(
+      (s) => s.toLowerCase() === canonicalSkill.toLowerCase(),
+    );
+    if (!alreadySelected) {
+      onToggleSkill(canonicalSkill);
+    }
+    setSkillInput('');
+  };
+
   return (
     <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-[0_12px_32px_rgba(15,23,42,0.08)] space-y-4">
-      {/* Top Row: Search + Experience Dropdown + Conditional Reset */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+      {/* Top Row: Search + Custom Skill Filter + Experience Dropdown + Conditional Reset */}
+      <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search by name, role, skills, or company (e.g. Stripe, Go, System Design)..."
+            placeholder="Search mentors by name or headline (e.g. Sarah, Stripe, Staff Engineer)..."
             className="w-full rounded-xl border border-slate-200/90 bg-slate-50/70 pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-teal-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-teal-600/10 transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+          <form
+            onSubmit={handleAddCustomSkill}
+            className="flex flex-1 sm:flex-initial items-center gap-1.5"
+          >
+            <input
+              type="text"
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              placeholder="Filter by skill (e.g. Python)..."
+              aria-label="Filter by skill"
+              className="w-full sm:w-48 rounded-xl border border-slate-200/90 bg-slate-50/70 px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-teal-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-teal-600/10 transition-all"
+            />
+            <button
+              type="submit"
+              disabled={!skillInput.trim()}
+              aria-label="Add skill filter"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition-colors hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </form>
+
           <select
             aria-label="Filter by minimum experience"
             value={minExperience ?? ''}
@@ -111,8 +162,22 @@ export function MentorFilters({
           All Skills
         </button>
 
+        {customSelectedSkills.map((skill) => (
+          <button
+            key={skill}
+            type="button"
+            onClick={() => onToggleSkill(skill)}
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-teal-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-[0_4px_12px_rgba(15,118,110,0.22)] transition-all hover:bg-teal-800 cursor-pointer"
+          >
+            <span>{skill}</span>
+            <X className="h-3 w-3" />
+          </button>
+        ))}
+
         {POPULAR_SKILLS.map((skill) => {
-          const isSelected = selectedSkills.includes(skill);
+          const isSelected = selectedSkills.some(
+            (s) => s.toLowerCase() === skill.toLowerCase(),
+          );
           return (
             <button
               key={skill}

@@ -6,6 +6,25 @@ import type {
   PaginatedMentorsResponse,
 } from '../types/mentor.types';
 
+function expandSkillCaseVariants(skill: string): string[] {
+  const trimmed = skill.trim();
+  if (!trimmed) return [];
+
+  const titleCased = trimmed
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+
+  return Array.from(
+    new Set([
+      trimmed,
+      trimmed.toLowerCase(),
+      trimmed.toUpperCase(),
+      titleCased,
+    ]),
+  );
+}
+
 export async function getMentors(
   params: MentorQueryParams = {},
 ): Promise<PaginatedMentorsResponse> {
@@ -24,10 +43,11 @@ export async function getMentors(
     searchParams.set('minExperience', String(params.minExperience));
   }
   if (params.skills && params.skills.length > 0) {
-    for (const skill of params.skills) {
-      if (skill.trim()) {
-        searchParams.append('skills', skill.trim());
-      }
+    const expandedSkills = Array.from(
+      new Set(params.skills.flatMap(expandSkillCaseVariants)),
+    );
+    for (const skill of expandedSkills) {
+      searchParams.append('skills', skill);
     }
   }
 

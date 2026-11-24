@@ -43,7 +43,9 @@ export function MentorsPage() {
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) =>
-      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill],
+      prev.some((s) => s.toLowerCase() === skill.toLowerCase())
+        ? prev.filter((s) => s.toLowerCase() !== skill.toLowerCase())
+        : [...prev, skill],
     );
     setCurrentPage(1);
   };
