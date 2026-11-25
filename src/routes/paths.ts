@@ -11,4 +11,5 @@ export const ROUTES = {
   PROFILE: '/profile',
   NOT_FOUND: '*',
   ONBOARDING: '/onboarding',
+  MENTOR_ONBOARDING: '/onboarding/mentor',
 } as const;

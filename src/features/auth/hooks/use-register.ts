@@ -5,7 +5,7 @@ import { ROUTES } from '@/routes/paths';
 import { useAuth } from './use-auth';
 import { authQueryKeys } from './query-keys';
 
-export function useRegister() {
+export function useRegister(redirectTo: string = ROUTES.ONBOARDING) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { login: setAuthToken } = useAuth();
@@ -15,7 +15,7 @@ export function useRegister() {
     onSuccess: (data) => {
       setAuthToken(data.accessToken);
       queryClient.setQueryData(authQueryKeys.currentUser(), data.user);
-      navigate(ROUTES.ONBOARDING);
+      navigate(redirectTo);
     },
   });
 }

@@ -10,6 +10,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router';
 
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
+import { buttonClassName } from '@/components/button-styles';
 import { DaleelLogo } from '@/components/logo';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
@@ -135,17 +136,20 @@ export function DashboardLayout() {
 
             {!mentorStatus && (
               <>
-                <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    leftIcon={
-                      <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                    }
-                    className="border-teal-200 text-teal-800 hover:bg-teal-50 hover:border-teal-300"
-                  >
-                    Become a Mentor
-                  </Button>
+                <Link
+                  to={ROUTES.MENTOR_ONBOARDING}
+                  className={buttonClassName({
+                    variant: 'outline',
+                    size: 'sm',
+                    className:
+                      'hidden sm:inline-flex border-teal-200 text-teal-800 hover:bg-teal-50 hover:border-teal-300',
+                  })}
+                >
+                  <Sparkles
+                    className="h-3.5 w-3.5 shrink-0 text-amber-500"
+                    aria-hidden="true"
+                  />
+                  Become a Mentor
                 </Link>
                 <div className="h-5 w-px bg-slate-200 hidden sm:block" />
               </>

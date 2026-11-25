@@ -14,3 +14,11 @@ export interface MenteeOnboardingFormValues {
 }
 
 export type MenteeProfileResponse = User;
+
+export interface CreateMentorProfileDto {
+  headline: string;
+  yearsOfExperience: number;
+  skills: string[];
+  about: string;
+  linkedinUrl?: string;
+}

@@ -10,7 +10,6 @@ import { MenteeInterestsCard } from '@/features/profile/components/mentee-intere
 import { MentorDetailsCard } from '@/features/profile/components/mentor-details-card';
 import { MentorActivationBanner } from '@/features/profile/components/mentor-activation-banner';
 import { EditProfileModal } from '@/features/profile/components/edit-profile-modal';
-import { ApplyMentorModal } from '@/features/profile/components/apply-mentor-modal';
 import { AddTopicModal } from '@/features/profile/components/add-topic-modal';
 import { AddSkillModal } from '@/features/profile/components/add-skill-modal';
 
@@ -27,7 +26,6 @@ export function ProfilePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
-  const [isMentorModalOpen, setIsMentorModalOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -102,9 +100,7 @@ export function ProfilePage() {
             onAddSkillClick={() => setIsSkillModalOpen(true)}
           />
         ) : (
-          <MentorActivationBanner
-            onApplyClick={() => setIsMentorModalOpen(true)}
-          />
+          <MentorActivationBanner />
         )}
       </div>
 
@@ -113,11 +109,6 @@ export function ProfilePage() {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         profile={profile}
-      />
-
-      <ApplyMentorModal
-        isOpen={isMentorModalOpen}
-        onClose={() => setIsMentorModalOpen(false)}
       />
 
       <AddTopicModal

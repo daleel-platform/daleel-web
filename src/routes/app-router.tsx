@@ -16,6 +16,7 @@ import { MessagesPage } from '@/pages/messages-page';
 import { ProfilePage } from '@/pages/profile-page';
 import { NotFoundPage } from '@/pages/not-found-page';
 import { OnboardingPage } from '@/pages/onboarding-page';
+import { MentorOnboardingPage } from '@/pages/mentor-onboarding-page';
 
 export function AppRouter() {
   return (
@@ -45,6 +46,10 @@ export function AppRouter() {
           <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
         </Route>
         <Route path={ROUTES.ONBOARDING} element={<OnboardingPage />} />
+        <Route
+          path={ROUTES.MENTOR_ONBOARDING}
+          element={<MentorOnboardingPage />}
+        />
       </Route>
 
       {/* Catch-all 404 */}
