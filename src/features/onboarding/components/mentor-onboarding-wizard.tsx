@@ -94,7 +94,7 @@ export function MentorOnboardingWizard() {
         </CardDescription>
       </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-6">
           {/* Milestone 01: Professional Identity */}
           <div className="rounded-2xl border border-teal-100/90 bg-gradient-to-r from-teal-50/60 via-white to-amber-50/30 p-5 shadow-2xs space-y-4">

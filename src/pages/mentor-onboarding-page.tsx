@@ -8,8 +8,16 @@ const CURRENT_YEAR = new Date().getFullYear();
 export function MentorOnboardingPage() {
   const { data: user, isLoading } = useCurrentUser();
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50/70">
+        <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+      </div>
+    );
+  }
+
   // Users who already have a mentor profile manage it from their profile page
-  if (!isLoading && user?.mentorProfile) {
+  if (user?.mentorProfile) {
     return <Navigate to={ROUTES.PROFILE} replace />;
   }
 
