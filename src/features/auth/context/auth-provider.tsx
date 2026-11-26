@@ -1,5 +1,15 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  AUTH_SESSION_EXPIRED_EVENT,
+  AUTH_TOKEN_REFRESHED_EVENT,
+} from '@/api/client';
 import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants';
 import { AuthContext, type AuthContextValue } from './auth-context';
 
@@ -21,6 +31,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTokenState(null);
     queryClient.clear();
   }, [queryClient]);
+
+  useEffect(() => {
+    const handleTokenRefreshed = (event: Event) => {
+      const nextToken = (event as CustomEvent<string>).detail;
+      if (nextToken) {
+        setTokenState(nextToken);
+      }
+    };
+
+    const handleSessionExpired = () => {
+      logout();
+    };
+
+    window.addEventListener(AUTH_TOKEN_REFRESHED_EVENT, handleTokenRefreshed);
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, handleSessionExpired);
+
+    return () => {
+      window.removeEventListener(
+        AUTH_TOKEN_REFRESHED_EVENT,
+        handleTokenRefreshed,
+      );
+      window.removeEventListener(
+        AUTH_SESSION_EXPIRED_EVENT,
+        handleSessionExpired,
+      );
+    };
+  }, [logout]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

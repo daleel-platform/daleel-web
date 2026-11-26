@@ -18,8 +18,8 @@ export function MentorActivationBanner() {
           Activate Your Mentor Profile
         </h2>
         <p className="text-xs text-slate-600 max-w-xl leading-relaxed">
-          Create your mentor offerings, set your hourly rate or offer free
-          community sessions, and start guiding the next generation.
+          Create your public mentor profile, highlight the topics you can guide
+          on, and start helping mentees accelerate their careers.
         </p>
       </div>
 

@@ -9,11 +9,12 @@ import { ProfileInfoCard } from '@/features/profile/components/profile-info-card
 import { MenteeInterestsCard } from '@/features/profile/components/mentee-interests-card';
 import { MentorDetailsCard } from '@/features/profile/components/mentor-details-card';
 import { MentorActivationBanner } from '@/features/profile/components/mentor-activation-banner';
-import { EditProfileModal } from '@/features/profile/components/edit-profile-modal';
 import { AddTopicModal } from '@/features/profile/components/add-topic-modal';
 import { AddSkillModal } from '@/features/profile/components/add-skill-modal';
+import { usePageTitle } from '@/hooks/use-page-title';
 
 export function ProfilePage() {
+  usePageTitle('My Profile');
   const {
     data: profile,
     isLoading,
@@ -23,7 +24,6 @@ export function ProfilePage() {
     isFetching,
   } = useProfile();
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isTopicModalOpen, setIsTopicModalOpen] = useState(false);
   const [isSkillModalOpen, setIsSkillModalOpen] = useState(false);
 
@@ -38,9 +38,9 @@ export function ProfilePage() {
   if (isError || !profile) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center p-4">
-        <Card className="max-w-md w-full p-6 text-center space-y-4 border border-slate-200/90 shadow-sm rounded-2xl bg-white">
+        <Card className="max-w-md w-full p-6 text-center space-y-4">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-8 ring-red-50/50">
-            <AlertCircle className="h-6 w-6" />
+            <AlertCircle className="h-6 w-6" aria-hidden="true" />
           </div>
           <div>
             <h2 className="text-base font-bold text-slate-900">
@@ -57,7 +57,9 @@ export function ProfilePage() {
               size="sm"
               onClick={() => refetch()}
               loading={isFetching}
-              leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+              leftIcon={
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+              }
             >
               Retry
             </Button>
@@ -72,45 +74,34 @@ export function ProfilePage() {
   const mentorSkills = profile.mentorProfile?.skills ?? [];
 
   return (
-    <div className="min-h-screen bg-slate-50/50 px-4 py-8 sm:px-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Onboarding Incompletion CTA Banner */}
-        <FinishOnboardingBanner profile={profile} />
+    <div className="mx-auto max-w-5xl px-6 py-8 space-y-6">
+      {/* Onboarding Incompletion CTA Banner */}
+      <FinishOnboardingBanner profile={profile} />
 
-        {/* Top Profile Header Hero */}
-        <ProfileHeader
-          profile={profile}
-          onEditClick={() => setIsEditModalOpen(true)}
+      {/* Top Profile Header with Direct Avatar Upload */}
+      <ProfileHeader profile={profile} />
+
+      {/* Mentee Profile Data: Inline Editable Personal Info & Learning Interests */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ProfileInfoCard profile={profile} />
+
+        <MenteeInterestsCard
+          interests={menteeInterests}
+          onAddTopicClick={() => setIsTopicModalOpen(true)}
         />
-
-        {/* Mentee Profile Data: Personal Details & Learning Interests */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ProfileInfoCard profile={profile} />
-
-          <MenteeInterestsCard
-            interests={menteeInterests}
-            onAddTopicClick={() => setIsTopicModalOpen(true)}
-          />
-        </div>
-
-        {/* Mentor Section: Either Full Mentor Details or Activation CTA */}
-        {hasMentorProfile && profile.mentorProfile ? (
-          <MentorDetailsCard
-            mentorProfile={profile.mentorProfile}
-            onAddSkillClick={() => setIsSkillModalOpen(true)}
-          />
-        ) : (
-          <MentorActivationBanner />
-        )}
       </div>
 
-      {/* Feature Modals */}
-      <EditProfileModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        profile={profile}
-      />
+      {/* Mentor Section: Either Inline Editable Mentor Details or Activation CTA */}
+      {hasMentorProfile && profile.mentorProfile ? (
+        <MentorDetailsCard
+          mentorProfile={profile.mentorProfile}
+          onAddSkillClick={() => setIsSkillModalOpen(true)}
+        />
+      ) : (
+        <MentorActivationBanner />
+      )}
 
+      {/* Topic / Skill Modals */}
       <AddTopicModal
         isOpen={isTopicModalOpen}
         onClose={() => setIsTopicModalOpen(false)}

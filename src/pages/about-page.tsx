@@ -18,6 +18,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { DaleelLogo } from '@/components/logo';
 import { Text } from '@/components/text';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { ROUTES } from '@/routes/paths';
 
 const featuredMentors = [
@@ -62,6 +63,8 @@ const companies = [
 ];
 
 export function AboutPage() {
+  usePageTitle();
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-teal-100 selection:text-teal-900">
       {/* Navigation Bar */}

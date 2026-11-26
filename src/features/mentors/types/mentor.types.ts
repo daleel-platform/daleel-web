@@ -1,4 +1,7 @@
+import type { MentorExperience } from '@/types/mentor';
+
 export interface MentorPublicUser {
+  id: string;
   name: string;
   avatarUrl: string | null;
   bio: string | null;
@@ -15,6 +18,7 @@ export interface MentorItem {
   createdAt: string;
   updatedAt: string;
   user: MentorPublicUser;
+  experiences?: MentorExperience[];
 }
 
 export interface PaginationMeta {

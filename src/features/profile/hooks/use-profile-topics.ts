@@ -27,8 +27,11 @@ export function useAddMenteeInterest() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.currentUser() });
+      void queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
+      void queryClient.invalidateQueries({
+        queryKey: authQueryKeys.currentUser(),
+      });
+      void queryClient.invalidateQueries({ queryKey: ['mentors'] });
     },
   });
 }
@@ -49,8 +52,11 @@ export function useRemoveMenteeInterest() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.currentUser() });
+      void queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
+      void queryClient.invalidateQueries({
+        queryKey: authQueryKeys.currentUser(),
+      });
+      void queryClient.invalidateQueries({ queryKey: ['mentors'] });
     },
   });
 }
@@ -79,8 +85,11 @@ export function useAddMentorSkill() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.currentUser() });
+      void queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
+      void queryClient.invalidateQueries({
+        queryKey: authQueryKeys.currentUser(),
+      });
+      void queryClient.invalidateQueries({ queryKey: ['mentors'] });
     },
   });
 }
@@ -105,8 +114,11 @@ export function useRemoveMentorSkill() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.currentUser() });
+      void queryClient.invalidateQueries({ queryKey: profileQueryKeys.all });
+      void queryClient.invalidateQueries({
+        queryKey: authQueryKeys.currentUser(),
+      });
+      void queryClient.invalidateQueries({ queryKey: ['mentors'] });
     },
   });
 }

@@ -20,11 +20,14 @@ export function useCreateConversation(): UseMutationResult<
       queryClient.setQueryData<Conversation[]>(
         chatQueryKeys.conversations(),
         (oldData) => {
-          if (!oldData) return [conversation];
+          if (!oldData) return undefined;
           if (oldData.some((c) => c.id === conversation.id)) return oldData;
           return [conversation, ...oldData];
         },
       );
+      void queryClient.invalidateQueries({
+        queryKey: chatQueryKeys.conversations(),
+      });
     },
   });
 }

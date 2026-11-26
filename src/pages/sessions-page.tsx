@@ -14,9 +14,11 @@ import { Avatar } from '@/components/avatar';
 import { Badge } from '@/components/badge';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { ROUTES } from '@/routes/paths';
 
 export function SessionsPage() {
+  usePageTitle('My Sessions');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'completed'>(
     'upcoming',
   );

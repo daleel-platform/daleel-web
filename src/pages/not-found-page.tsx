@@ -3,9 +3,12 @@ import { Compass, Home } from 'lucide-react';
 
 import { Button } from '@/components/button';
 import { DaleelLogo } from '@/components/logo';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { ROUTES } from '@/routes/paths';
 
 export function NotFoundPage() {
+  usePageTitle('Page Not Found');
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12 text-center">
       <div className="mb-6">

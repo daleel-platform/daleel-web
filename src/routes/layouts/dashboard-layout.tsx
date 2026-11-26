@@ -3,7 +3,6 @@ import {
   Compass,
   LogOut,
   MessageSquare,
-  Search,
   Sparkles,
 } from 'lucide-react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router';
@@ -69,20 +68,8 @@ export function DashboardLayout() {
             </nav>
           </div>
 
-          {/* Right: Search, Mentor CTA/Status, Profile & Actions */}
+          {/* Right: Mentor CTA/Status, Profile & Actions */}
           <div className="flex items-center gap-3">
-            <div className="relative hidden sm:block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search mentors or topics..."
-                className="h-9 w-60 rounded-xl border border-slate-200 bg-slate-50/80 pl-9 pr-8 text-xs text-slate-800 placeholder:text-slate-400 transition-all focus:border-teal-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-teal-600/10"
-              />
-              <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
-                /
-              </kbd>
-            </div>
-
             {mentorStatus === 'ACTIVE' && (
               <>
                 <Link to={ROUTES.PROFILE} className="hidden sm:inline-flex">
