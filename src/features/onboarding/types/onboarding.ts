@@ -1,4 +1,5 @@
 import type { User } from '@/features/auth/types/auth';
+import type { MentorExperience } from '@/types/mentor';
 
 export interface UpdateMenteeProfileDto {
   bio?: string;
@@ -16,9 +17,11 @@ export interface MenteeOnboardingFormValues {
 export type MenteeProfileResponse = User;
 
 export interface CreateMentorProfileDto {
+  file?: File;
   headline: string;
   yearsOfExperience: number;
   skills: string[];
   about: string;
   linkedinUrl?: string;
+  experiences: Omit<MentorExperience, 'id'>[];
 }

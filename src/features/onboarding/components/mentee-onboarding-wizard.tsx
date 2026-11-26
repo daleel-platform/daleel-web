@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useForm, Controller, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, Link } from 'react-router';
-import { Camera, Trash2, Sparkles, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Camera, Trash2, ArrowRight } from 'lucide-react';
 
 import { Avatar } from '@/components/avatar';
 import { Badge } from '@/components/badge';
 import { Button } from '@/components/button';
-import { DaleelLogo } from '@/components/logo';
 import {
   Card,
   CardHeader,
@@ -32,6 +31,10 @@ export function MenteeOnboardingWizard() {
   const updateProfileMutation = useUpdateMenteeProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const {
     register,
@@ -82,14 +85,6 @@ export function MenteeOnboardingWizard() {
   const bioValue = useWatch({ control, name: 'bio' }) ?? '';
   const watchedInterests = useWatch({ control, name: 'interests' }) ?? [];
 
-  const hasPhoto = Boolean(previewUrl || user?.avatarUrl);
-  const hasInterests = watchedInterests.length > 0;
-  const hasBio = Boolean(bioValue && bioValue.trim().length > 0);
-
-  const completedSteps =
-    (hasPhoto ? 1 : 0) + (hasInterests ? 1 : 0) + (hasBio ? 1 : 0);
-  const strengthPercentage = Math.round((completedSteps / 3) * 100);
-
   const handleSkip = () => {
     markOnboardingDismissed(user?.id);
     navigate(ROUTES.MENTORS, { replace: true });
@@ -123,110 +118,68 @@ export function MenteeOnboardingWizard() {
   };
 
   return (
-    <Card className="max-w-2xl w-full p-6 sm:p-8 shadow-sm border border-slate-200/90 rounded-3xl bg-white">
-      <CardHeader className="text-center pb-6">
-        {/* Brand Logo integrated inside the card crown */}
-        <div className="mb-4 flex justify-center">
-          <Link
-            to={ROUTES.HOME}
-            className="hover:opacity-90 transition-opacity"
-            title="Daleel Home"
-          >
-            <DaleelLogo size="md" />
-          </Link>
-        </div>
-
+    <Card className="max-w-2xl w-full p-6 sm:p-8 shadow-xs border border-slate-200/80 rounded-2xl bg-white">
+      <CardHeader className="pb-5 border-b border-slate-100">
         <CardTitle className="text-2xl font-extrabold tracking-tight text-slate-900">
           {user?.name
-            ? `Welcome to Daleel, ${user.name.split(' ')[0]}!`
-            : 'Welcome to Daleel!'}
+            ? `Welcome to Daleel, ${user.name.split(' ')[0]}`
+            : 'Welcome to Daleel'}
         </CardTitle>
-        <CardDescription className="text-sm text-slate-600 max-w-md mx-auto mt-1">
-          Personalize your mentorship profile so our matching engine can connect
-          you with the right mentors.
+        <CardDescription className="text-sm text-slate-500 mt-1">
+          Set your learning focus so Daleel can match you with the right
+          mentors.
         </CardDescription>
-
-        {/* Profile Strength Gamification Bar */}
-        <div className="mt-5 max-w-md mx-auto w-full rounded-2xl bg-slate-50/90 border border-slate-200/70 p-3.5">
-          <div className="flex items-center justify-between text-xs font-semibold">
-            <span className="text-slate-700 flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-teal-600 animate-pulse" />
-              Profile Strength
-            </span>
-            <span className="text-teal-800 font-bold">
-              {strengthPercentage}%
-            </span>
-          </div>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-teal-600 to-amber-500 transition-all duration-300 ease-out"
-              style={{ width: `${strengthPercentage}%` }}
-            />
-          </div>
-          <div className="mt-2 flex justify-between text-[11px] text-slate-400">
-            <span>{completedSteps} of 3 sections completed</span>
-            <span>
-              {hasInterests ? 'Ready to discover' : 'Topics required *'}
-            </span>
-          </div>
-        </div>
       </CardHeader>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-6">
-          {/* Milestone 01: Profile Photo */}
-          <div className="rounded-2xl border border-teal-100/90 bg-gradient-to-r from-teal-50/60 via-white to-amber-50/30 p-5 shadow-2xs">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-teal-100/60">
-              <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[10px] font-extrabold text-white shadow-2xs">
-                  01
-                </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                  Profile Photo
-                </span>
-                <span className="text-[11px] font-medium text-slate-400">
-                  (Optional)
-                </span>
-              </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100/70 border border-amber-200/80 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
-                <Sparkles className="h-2.5 w-2.5 text-amber-600" />
-                3× More Replies
+        <CardContent className="space-y-5 pt-6">
+          {/* Step 01: Profile Photo */}
+          <section className="rounded-xl border border-slate-200/80 bg-white p-5">
+            <div className="flex items-center gap-2 pb-3 mb-4 border-b border-slate-100">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[10px] font-bold text-white">
+                01
+              </span>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                Profile Photo
+              </h2>
+              <span className="text-[11px] font-medium text-slate-400">
+                (Optional)
               </span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-5">
-              <div className="relative group">
+              <div className="relative shrink-0">
                 <Avatar
                   name={user?.name}
                   src={previewUrl || user?.avatarUrl || undefined}
                   size="xl"
-                  className="h-20 w-20 ring-4 ring-white shadow-sm"
+                  className="rounded-full ring-4 ring-slate-100"
                 />
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 p-1.5 rounded-full bg-teal-700 text-white shadow-xs hover:bg-teal-800 transition-all active:scale-95 cursor-pointer"
+                  className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-teal-700 text-white shadow-xs hover:bg-teal-800 transition-colors cursor-pointer"
                   title="Upload photo"
                   aria-label="Upload photo"
                 >
-                  <Camera className="h-3.5 w-3.5" />
+                  <Camera className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               </div>
 
               <div className="flex-1 text-center sm:text-left space-y-1.5">
-                <h4 className="text-xs font-bold text-slate-900">
-                  Put a friendly face to your profile
-                </h4>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Mentors love knowing who they are speaking with. You can
-                  change or remove this at any time.
+                <p className="text-xs font-semibold text-slate-900">
+                  Add a profile picture
                 </p>
-                <div className="flex items-center justify-center sm:justify-start gap-3 pt-1">
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  JPEG, PNG, or WebP up to 5 MB. You can update or change this
+                  anytime from your profile.
+                </p>
+                <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
                   <Button
                     type="button"
                     variant="outline"
                     size="xs"
-                    leftIcon={<Camera className="h-3 w-3" />}
+                    leftIcon={<Camera className="h-3 w-3" aria-hidden="true" />}
                     onClick={() => fileInputRef.current?.click()}
                   >
                     {previewUrl ? 'Change Photo' : 'Upload Photo'}
@@ -238,14 +191,19 @@ export function MenteeOnboardingWizard() {
                       size="xs"
                       onClick={handleRemovePhoto}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      leftIcon={<Trash2 className="h-3 w-3 text-red-500" />}
+                      leftIcon={
+                        <Trash2
+                          className="h-3 w-3 text-red-500"
+                          aria-hidden="true"
+                        />
+                      }
                     >
                       Remove
                     </Button>
                   )}
                 </div>
                 {errors.file && (
-                  <p className="text-xs text-red-600 font-medium pt-1">
+                  <p role="alert" className="text-xs text-red-600 font-medium">
                     {errors.file.message}
                   </p>
                 )}
@@ -259,18 +217,18 @@ export function MenteeOnboardingWizard() {
                 className="hidden"
               />
             </div>
-          </div>
+          </section>
 
-          {/* Milestone 02: Topics / Interests */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          {/* Step 02: Learning Focus */}
+          <section className="rounded-xl border border-slate-200/80 bg-white p-5 space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[10px] font-extrabold text-white shadow-2xs">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[10px] font-bold text-white">
                   02
                 </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                   Learning Focus
-                </span>
+                </h2>
                 <span className="text-red-500 font-bold text-xs">*</span>
               </div>
               <Badge
@@ -283,7 +241,7 @@ export function MenteeOnboardingWizard() {
                 }
                 size="sm"
               >
-                {watchedInterests.length}/5 topics selected
+                {watchedInterests.length}/5 selected
               </Badge>
             </div>
 
@@ -299,20 +257,20 @@ export function MenteeOnboardingWizard() {
                 />
               )}
             />
-          </div>
+          </section>
 
-          {/* Milestone 03: Short Bio */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+          {/* Step 03: Short Bio */}
+          <section className="rounded-xl border border-slate-200/80 bg-white p-5 space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[10px] font-extrabold text-white shadow-2xs">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-teal-700 text-[10px] font-bold text-white">
                   03
                 </span>
                 <label
                   htmlFor="bio"
                   className="text-xs font-bold uppercase tracking-wider text-slate-700 cursor-pointer"
                 >
-                  Introduce Yourself
+                  Short Bio
                 </label>
                 <span className="text-[11px] font-medium text-slate-400">
                   (Optional)
@@ -324,8 +282,7 @@ export function MenteeOnboardingWizard() {
             </div>
 
             <p className="text-[11px] text-slate-500">
-              A 1–2 sentence introduction displayed to mentors when you book
-              guidance sessions.
+              A brief introduction shown to mentors when you connect.
             </p>
 
             <textarea
@@ -334,24 +291,34 @@ export function MenteeOnboardingWizard() {
               {...register('bio')}
               aria-describedby={errors.bio ? 'bio-error' : undefined}
               aria-invalid={Boolean(errors.bio)}
-              placeholder="e.g. Junior software developer passionate about cloud infrastructure, looking for career guidance and interview prep."
-              className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition-all resize-none leading-relaxed"
+              placeholder="e.g. Software developer focused on backend systems, looking for architecture guidance and interview prep."
+              className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-4 focus:ring-teal-600/10 transition-all resize-none leading-relaxed"
             />
             {errors.bio && (
-              <p id="bio-error" className="text-xs text-red-600 font-medium">
+              <p
+                id="bio-error"
+                role="alert"
+                className="text-xs text-red-600 font-medium"
+              >
                 {errors.bio.message}
               </p>
             )}
-          </div>
+          </section>
 
           {submitError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <div
+              role="alert"
+              className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+            >
               {submitError}
             </div>
           )}
 
           {updateProfileMutation.isError && (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <div
+              role="alert"
+              className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700"
+            >
               {updateProfileMutation.error?.message ||
                 'Failed to update profile. Please try again.'}
             </div>
@@ -359,7 +326,7 @@ export function MenteeOnboardingWizard() {
         </CardContent>
 
         {/* Action Buttons */}
-        <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="mt-6 pt-5 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
           <Button
             type="button"
             variant="ghost"
@@ -379,9 +346,9 @@ export function MenteeOnboardingWizard() {
               !user?.id || isUserLoading || updateProfileMutation.isPending
             }
             loading={updateProfileMutation.isPending}
-            rightIcon={<ArrowRight className="h-4 w-4" />}
+            rightIcon={<ArrowRight className="h-4 w-4" aria-hidden="true" />}
           >
-            Complete & Discover Mentors
+            Complete &amp; Discover Mentors
           </Button>
         </div>
       </form>

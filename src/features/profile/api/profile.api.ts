@@ -14,6 +14,12 @@ export function updateProfile(dto: UpdateUserProfileDto): Promise<UserProfile> {
   return apiClient.patch<UserProfile>('/users/me', dto);
 }
 
+export function uploadProfileAvatar(file: File): Promise<UserProfile> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiClient.patch<UserProfile>('/users/me', formData);
+}
+
 export function updateMentorProfile(
   dto: UpdateMentorProfileDto,
 ): Promise<MentorProfile> {

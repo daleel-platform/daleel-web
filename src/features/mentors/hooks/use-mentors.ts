@@ -12,11 +12,19 @@ import type {
   PaginatedMentorsResponse,
 } from '../types/mentor.types';
 
-export function useMentors(params: MentorQueryParams = {}) {
+export interface UseMentorsOptions {
+  enabled?: boolean;
+}
+
+export function useMentors(
+  params: MentorQueryParams = {},
+  options?: UseMentorsOptions,
+) {
   return useQuery<PaginatedMentorsResponse, Error>({
     queryKey: mentorQueryKeys.list(params),
     queryFn: () => getMentors(params),
     placeholderData: keepPreviousData,
+    enabled: options?.enabled ?? true,
     staleTime: 60 * 1000,
   });
 }

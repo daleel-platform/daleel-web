@@ -29,8 +29,15 @@ export function updateMenteeProfile(
   });
 }
 
-export function createMentorProfile(
+export async function createMentorProfile(
   dto: CreateMentorProfileDto,
 ): Promise<MentorProfile> {
-  return apiClient.post<MentorProfile>('/mentors', dto);
+  if (dto.file) {
+    const formData = new FormData();
+    formData.append('file', dto.file);
+    await apiClient.patch<User>('/users/me', formData);
+  }
+
+  const { file: _file, ...mentorPayload } = dto;
+  return apiClient.post<MentorProfile>('/mentors', mentorPayload);
 }

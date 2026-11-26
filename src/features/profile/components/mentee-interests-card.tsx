@@ -32,17 +32,17 @@ export function MenteeInterestsCard({
   };
 
   return (
-    <Card className="flex flex-col h-full p-6 sm:p-8">
-      <div className="flex items-center justify-between gap-3 mb-2 pb-3 border-b border-slate-100">
+    <Card className="flex flex-col h-full p-6">
+      <div className="flex items-center justify-between gap-3 mb-3 pb-3 border-b border-slate-100">
         <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-teal-600" />
+          <BookOpen className="w-4 h-4 text-teal-600" aria-hidden="true" />
           <span>Topics I Want to Learn</span>
         </h2>
         <Button
           variant="outline"
           size="xs"
           onClick={onAddTopicClick}
-          leftIcon={<Plus className="h-3 w-3" />}
+          leftIcon={<Plus className="h-3 w-3" aria-hidden="true" />}
         >
           Add Topic
         </Button>

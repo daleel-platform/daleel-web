@@ -30,8 +30,13 @@ export function Modal({
 }: ModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
   const titleId = useId();
   const descId = useId();
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -43,9 +48,19 @@ export function Modal({
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // Focus first focusable element inside modal
+    // Focus [autofocus] element or first focusable element inside modal (only when opening)
     const timer = setTimeout(() => {
       if (modalRef.current) {
+        if (modalRef.current.contains(document.activeElement)) {
+          return;
+        }
+        const autoFocusEl = modalRef.current.querySelector<HTMLElement>(
+          '[autofocus], input:not([disabled])',
+        );
+        if (autoFocusEl) {
+          autoFocusEl.focus();
+          return;
+        }
         const focusable = modalRef.current.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
         );
@@ -60,7 +75,7 @@ export function Modal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -93,7 +108,7 @@ export function Modal({
         previousActiveElement.current.focus();
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

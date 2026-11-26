@@ -10,6 +10,7 @@ import { Button } from '@/components/button';
 import { DaleelLogo } from '@/components/logo';
 import { Text } from '@/components/text';
 import { TextInput } from '@/components/text-input';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { ROUTES } from '@/routes/paths';
 import { useRegister } from '@/features/auth/hooks/use-register';
 import { PasswordRulesList } from '@/features/auth/components/password-rules-list';
@@ -23,6 +24,7 @@ export function RegisterPage() {
   const [globalError, setGlobalError] = useState('');
   const [searchParams] = useSearchParams();
   const isMentorIntent = searchParams.get('intent') === 'mentor';
+  usePageTitle(isMentorIntent ? 'Become a Mentor' : 'Create Account');
   const { mutate, isPending } = useRegister(
     isMentorIntent ? ROUTES.MENTOR_ONBOARDING : ROUTES.ONBOARDING,
   );
@@ -75,47 +77,12 @@ export function RegisterPage() {
 
         {/* Top Header */}
         <div className="relative z-10">
-          <Link to={ROUTES.HOME} className="inline-block">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20 backdrop-blur-xs">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-6 w-6 text-amber-400"
-                >
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="9"
-                    className="opacity-40"
-                    strokeWidth="1.5"
-                  />
-                  <polygon
-                    points="12 4 15 12 12 10 9 12"
-                    fill="#F59E0B"
-                    stroke="#F59E0B"
-                    strokeWidth="1"
-                  />
-                  <polygon
-                    points="12 20 15 12 12 14 9 12"
-                    fill="currentColor"
-                    stroke="currentColor"
-                    strokeWidth="1"
-                    className="opacity-70 text-white"
-                  />
-                </svg>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-bold tracking-tight text-white font-sans">
-                  Daleel
-                </span>
-                <span className="text-[10px] text-teal-200">دليل</span>
-              </div>
-            </div>
+          <Link
+            to={ROUTES.HOME}
+            className="inline-block"
+            aria-label="Daleel Home"
+          >
+            <DaleelLogo size="lg" variant="inverted" />
           </Link>
         </div>
 

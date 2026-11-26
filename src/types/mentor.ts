@@ -1,5 +1,14 @@
 export type MentorStatus = 'ACTIVE' | 'PENDING' | 'INACTIVE';
 
+export interface MentorExperience {
+  id?: string;
+  title: string;
+  company: string;
+  startYear: number;
+  endYear: number | null;
+  summary: string;
+}
+
 export interface MentorProfile {
   id: string;
   userId: string;
@@ -10,6 +19,7 @@ export interface MentorProfile {
   linkedinUrl?: string | null;
   isActive: boolean;
   status?: MentorStatus;
+  experiences?: MentorExperience[];
   createdAt?: string;
   updatedAt?: string;
 }

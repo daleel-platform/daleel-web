@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { io, type Socket } from 'socket.io-client';
+import {
+  AUTH_SESSION_EXPIRED_EVENT,
+  AUTH_TOKEN_REFRESHED_EVENT,
+  refreshAccessToken,
+} from '@/api/client';
 import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants';
 import { env } from '@/config/env';
 import { chatQueryKeys } from './query-keys';
@@ -68,7 +73,13 @@ export function useChatSocket({
     }
 
     const socket: Socket = io(env.wsBaseUrl, {
-      auth: { token },
+      auth: (cb) => {
+        const latestToken =
+          typeof window !== 'undefined'
+            ? localStorage.getItem(AUTH_TOKEN_STORAGE_KEY)
+            : null;
+        cb({ token: latestToken });
+      },
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,
@@ -76,8 +87,20 @@ export function useChatSocket({
     });
 
     socketRef.current = socket;
+    let isDisposed = false;
+    let hasRetriedAuth = false;
+
+    const handleTokenRefreshed = () => {
+      if (!isDisposed && !socket.connected) {
+        hasRetriedAuth = false;
+        socket.connect();
+      }
+    };
+
+    window.addEventListener(AUTH_TOKEN_REFRESHED_EVENT, handleTokenRefreshed);
 
     socket.on('connect', () => {
+      hasRetriedAuth = false;
       setIsConnected(true);
 
       if (hasConnectedOnceRef.current) {
@@ -95,6 +118,24 @@ export function useChatSocket({
 
     socket.on('disconnect', () => {
       setIsConnected(false);
+    });
+
+    socket.on('error', (err: WsErrorPayload) => {
+      if (err?.statusCode !== 401 || hasRetriedAuth || isDisposed) {
+        return;
+      }
+
+      hasRetriedAuth = true;
+      void refreshAccessToken().then((newToken) => {
+        if (isDisposed) return;
+        if (newToken) {
+          if (!socket.connected) {
+            socket.connect();
+          }
+        } else {
+          window.dispatchEvent(new CustomEvent(AUTH_SESSION_EXPIRED_EVENT));
+        }
+      });
     });
 
     socket.on('messageCreated', (newMessage: Message) => {
@@ -252,6 +293,11 @@ export function useChatSocket({
     });
 
     return () => {
+      isDisposed = true;
+      window.removeEventListener(
+        AUTH_TOKEN_REFRESHED_EVENT,
+        handleTokenRefreshed,
+      );
       socket.disconnect();
       socketRef.current = null;
       hasConnectedOnceRef.current = false;

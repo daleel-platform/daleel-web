@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { cn } from '@/utils/cn';
+import { useDebounce } from '@/hooks/use-debounce';
+import { usePageTitle } from '@/hooks/use-page-title';
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
+import { useMentors } from '@/features/mentors/hooks/use-mentors';
 import { useConversations } from '@/features/chat/hooks/use-conversations';
 import { useMessages } from '@/features/chat/hooks/use-messages';
 import { useChatSocket } from '@/features/chat/hooks/use-chat-socket';
@@ -14,6 +17,7 @@ import { EmptyChatState } from '@/features/chat/components/empty-chat-state';
 import { NewConversationModal } from '@/features/chat/components/new-conversation-modal';
 
 export function MessagesPage() {
+  usePageTitle('Messages');
   const [searchParams, setSearchParams] = useSearchParams();
   const queryConversationId = searchParams.get('conversationId');
 
@@ -27,6 +31,19 @@ export function MessagesPage() {
   } = useConversations();
 
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
+  const [newChatSearch, setNewChatSearch] = useState('');
+  const debouncedNewChatSearch = useDebounce(newChatSearch, 500);
+  const trimmedDebouncedSearch = debouncedNewChatSearch.trim();
+
+  const { data: mentorsData, isFetching: isFetchingMentors } = useMentors(
+    {
+      search: trimmedDebouncedSearch || undefined,
+      limit: 10,
+    },
+    {
+      enabled: isNewChatModalOpen && Boolean(trimmedDebouncedSearch),
+    },
+  );
 
   // Derive active ID: URL query param > default first conversation on desktop
   const selectedConversationId =
@@ -79,6 +96,21 @@ export function MessagesPage() {
     await sendMessage(content);
   };
 
+  const currentUserId = currentUser?.id || '';
+
+  const recipientOptions = useMemo(
+    () =>
+      (mentorsData?.items ?? [])
+        .filter((mentor) => mentor.user.id && mentor.user.id !== currentUserId)
+        .map((mentor) => ({
+          userId: mentor.user.id,
+          name: mentor.user.name,
+          headline: mentor.headline,
+          avatarUrl: mentor.user.avatarUrl,
+        })),
+    [mentorsData, currentUserId],
+  );
+
   if (isUserLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -86,8 +118,6 @@ export function MessagesPage() {
       </div>
     );
   }
-
-  const currentUserId = currentUser?.id || '';
 
   return (
     <div className="mx-auto max-w-7xl px-3 sm:px-6 py-4 md:py-8">
@@ -153,8 +183,16 @@ export function MessagesPage() {
 
       <NewConversationModal
         isOpen={isNewChatModalOpen}
-        onClose={() => setIsNewChatModalOpen(false)}
-        currentUserId={currentUserId}
+        onClose={() => {
+          setIsNewChatModalOpen(false);
+          setNewChatSearch('');
+        }}
+        recipients={recipientOptions}
+        searchQuery={newChatSearch}
+        onSearchChange={setNewChatSearch}
+        isSearching={isFetchingMentors}
+        hasSearched={Boolean(trimmedDebouncedSearch)}
+        totalMatches={mentorsData?.meta?.totalItems}
         onConversationCreated={(newConvId) =>
           handleSelectConversation(newConvId)
         }

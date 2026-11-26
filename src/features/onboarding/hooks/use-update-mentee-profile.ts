@@ -16,7 +16,13 @@ export function useUpdateMenteeProfile() {
     mutationFn: ({ userId, data }) => updateMenteeProfile(userId, data),
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(authQueryKeys.currentUser(), updatedUser);
-      queryClient.invalidateQueries({ queryKey: authQueryKeys.currentUser() });
+      void queryClient.invalidateQueries({
+        queryKey: authQueryKeys.currentUser(),
+      });
+      void queryClient.invalidateQueries({ queryKey: ['profile'] });
+      void queryClient.invalidateQueries({
+        queryKey: ['mentors', 'recommendations'],
+      });
     },
   });
 }

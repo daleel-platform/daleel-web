@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { MessageSquare, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/button';
 import { MessageBubble } from './message-bubble';
@@ -28,16 +28,19 @@ export function MessageList({
   onRetry,
 }: MessageListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const topSentinelRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef<number | null>(null);
   const prevFirstMessageIdRef = useRef<string | null>(null);
   const prevLastMessageIdRef = useRef<string | null>(null);
+  const hasInitialScrolledRef = useRef(false);
 
   useLayoutEffect(() => {
     if (messages.length === 0) {
       prevScrollHeightRef.current = null;
       prevFirstMessageIdRef.current = null;
       prevLastMessageIdRef.current = null;
+      hasInitialScrolledRef.current = false;
       return;
     }
 
@@ -55,20 +58,49 @@ export function MessageList({
       prevScrollHeightRef.current = null;
     } else if (lastId !== prevLastMessageIdRef.current) {
       const isInitialLoad = prevLastMessageIdRef.current === null;
-      bottomRef.current?.scrollIntoView({
-        behavior: isInitialLoad ? 'auto' : 'smooth',
-      });
+      if (isInitialLoad && containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        requestAnimationFrame(() => {
+          hasInitialScrolledRef.current = true;
+        });
+      } else {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     prevFirstMessageIdRef.current = firstId;
     prevLastMessageIdRef.current = lastId;
   }, [messages]);
 
-  const handleLoadMore = () => {
-    if (!onLoadMore || isFetchingNextPage) return;
-    prevScrollHeightRef.current = containerRef.current?.scrollHeight ?? null;
-    onLoadMore();
-  };
+  useEffect(() => {
+    const container = containerRef.current;
+    const sentinel = topSentinelRef.current;
+    if (!container || !sentinel || !hasNextPage || !onLoadMore) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (
+          entry?.isIntersecting &&
+          hasInitialScrolledRef.current &&
+          !isFetchingNextPage
+        ) {
+          prevScrollHeightRef.current = container.scrollHeight;
+          onLoadMore();
+        }
+      },
+      {
+        root: container,
+        rootMargin: '80px 0px 0px 0px',
+        threshold: 0,
+      },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, onLoadMore]);
 
   if (isLoading) {
     return (
@@ -123,17 +155,11 @@ export function MessageList({
       ref={containerRef}
       className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-slate-50/30"
     >
-      {hasNextPage && onLoadMore && (
-        <div className="flex justify-center pb-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="xs"
-            loading={isFetchingNextPage}
-            onClick={handleLoadMore}
-          >
-            Load older messages
-          </Button>
+      <div ref={topSentinelRef} className="h-1 w-full" aria-hidden="true" />
+      {isFetchingNextPage && (
+        <div className="flex items-center justify-center gap-2 py-2 text-xs text-slate-500">
+          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
+          <span>Loading older messages...</span>
         </div>
       )}
       {messages.map((msg) => (
