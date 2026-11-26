@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
+import { cn } from '@/utils/cn';
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
 import { useConversations } from '@/features/chat/hooks/use-conversations';
 import { useMessages } from '@/features/chat/hooks/use-messages';
 import { useChatSocket } from '@/features/chat/hooks/use-chat-socket';
+import { getOtherParticipant } from '@/features/chat/utils/get-other-participant';
 import { ConversationList } from '@/features/chat/components/conversation-list';
 import { ChatHeader } from '@/features/chat/components/chat-header';
 import { MessageList } from '@/features/chat/components/message-list';
@@ -16,15 +18,18 @@ export function MessagesPage() {
   const queryConversationId = searchParams.get('conversationId');
 
   const { data: currentUser, isLoading: isUserLoading } = useCurrentUser();
-  const { data: conversations = [], isLoading: isConversationsLoading } =
-    useConversations();
+  const {
+    data: conversations = [],
+    isLoading: isConversationsLoading,
+    isError: isConversationsError,
+    error: conversationsError,
+    refetch: refetchConversations,
+  } = useConversations();
 
-  const [userSelectedId, setUserSelectedId] = useState<string | null>(null);
   const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
 
-  // Derive active ID: explicitly selected by user > URL query param > default first conversation on desktop
+  // Derive active ID: URL query param > default first conversation on desktop
   const selectedConversationId =
-    userSelectedId ??
     queryConversationId ??
     (typeof window !== 'undefined' &&
     window.innerWidth >= 768 &&
@@ -33,12 +38,10 @@ export function MessagesPage() {
       : null);
 
   const handleSelectConversation = (id: string) => {
-    setUserSelectedId(id);
     setSearchParams({ conversationId: id });
   };
 
   const handleBackToList = () => {
-    setUserSelectedId(null);
     setSearchParams({});
   };
 
@@ -48,14 +51,24 @@ export function MessagesPage() {
 
   const otherUser =
     selectedConversation && currentUser
-      ? selectedConversation.participant1Id === currentUser.id
-        ? selectedConversation.participant2
-        : selectedConversation.participant1
+      ? getOtherParticipant(selectedConversation, currentUser.id)
       : null;
 
-  const { data: messagesData, isLoading: isMessagesLoading } = useMessages(
-    selectedConversationId,
-  );
+  const {
+    data: messagesData,
+    isLoading: isMessagesLoading,
+    isError: isMessagesError,
+    error: messagesError,
+    refetch: refetchMessages,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useMessages(selectedConversationId);
+
+  const messages = useMemo(() => {
+    if (!messagesData) return [];
+    return [...messagesData.pages].reverse().flatMap((page) => page.items);
+  }, [messagesData]);
 
   const { sendMessage, isConnected } = useChatSocket({
     conversationId: selectedConversationId,
@@ -81,9 +94,12 @@ export function MessagesPage() {
       <div className="overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white shadow-xs grid grid-cols-1 md:grid-cols-12 h-[calc(100vh-140px)] min-h-[550px] max-h-[850px]">
         {/* Left Column: Conversations List */}
         <div
-          className={`md:col-span-4 border-r border-slate-200 h-full overflow-hidden ${
-            selectedConversationId ? 'hidden md:flex flex-col' : 'flex flex-col'
-          }`}
+          className={cn(
+            'md:col-span-4 border-r border-slate-200 h-full overflow-hidden',
+            selectedConversationId
+              ? 'hidden md:flex flex-col'
+              : 'flex flex-col',
+          )}
         >
           <ConversationList
             conversations={conversations}
@@ -92,14 +108,18 @@ export function MessagesPage() {
             onSelectConversation={handleSelectConversation}
             onNewChatClick={() => setIsNewChatModalOpen(true)}
             isLoading={isConversationsLoading}
+            isError={isConversationsError}
+            errorMessage={conversationsError?.message}
+            onRetry={() => void refetchConversations()}
           />
         </div>
 
         {/* Right Column: Chat Conversation */}
         <div
-          className={`md:col-span-8 flex flex-col h-full bg-white overflow-hidden ${
-            !selectedConversationId ? 'hidden md:flex' : 'flex'
-          }`}
+          className={cn(
+            'md:col-span-8 flex flex-col h-full bg-white overflow-hidden',
+            !selectedConversationId ? 'hidden md:flex' : 'flex',
+          )}
         >
           {selectedConversationId ? (
             <>
@@ -109,13 +129,20 @@ export function MessagesPage() {
                 isConnected={isConnected}
               />
               <MessageList
-                messages={messagesData?.items ?? []}
+                key={selectedConversationId}
+                messages={messages}
                 currentUserId={currentUserId}
                 isLoading={isMessagesLoading}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                onLoadMore={() => void fetchNextPage()}
+                isError={isMessagesError}
+                errorMessage={messagesError?.message}
+                onRetry={() => void refetchMessages()}
               />
               <MessageInput
                 onSendMessage={handleSendMessage}
-                disabled={!selectedConversationId}
+                disabled={!selectedConversationId || !isConnected}
               />
             </>
           ) : (

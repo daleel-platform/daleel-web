@@ -4,8 +4,7 @@ export interface UserSummary {
   avatarUrl: string | null;
 }
 
-export type MessageType =
-  'TEXT' | 'IMAGE' | 'PDF' | 'AUDIO' | 'VIDEO' | 'VOICE_NOTE';
+export type MessageType = 'TEXT' | 'IMAGE' | 'DOCUMENT';
 
 export interface QuotedMessage {
   id: string;
@@ -56,4 +55,10 @@ export interface SendMessagePayload {
   conversationId: string;
   content: string;
   replyToId?: string;
+}
+
+export interface MessageDeletedPayload {
+  messageId: string;
+  conversationId: string;
+  isDeleted: boolean;
 }

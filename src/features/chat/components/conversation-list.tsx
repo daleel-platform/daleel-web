@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
-import { Search, MessageSquare, Plus } from 'lucide-react';
+import { Search, MessageSquare, Plus, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/button';
 import { ConversationItem } from './conversation-item';
+import { getOtherParticipant } from '../utils/get-other-participant';
 import type { Conversation } from '../types/chat.types';
 
 interface ConversationListProps {
@@ -10,6 +12,9 @@ interface ConversationListProps {
   onSelectConversation: (id: string) => void;
   onNewChatClick?: () => void;
   isLoading: boolean;
+  isError?: boolean;
+  errorMessage?: string;
+  onRetry?: () => void;
 }
 
 export function ConversationList({
@@ -19,6 +24,9 @@ export function ConversationList({
   onSelectConversation,
   onNewChatClick,
   isLoading,
+  isError = false,
+  errorMessage,
+  onRetry,
 }: ConversationListProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -27,11 +35,7 @@ export function ConversationList({
     const query = searchQuery.toLowerCase().trim();
 
     return conversations.filter((conv) => {
-      const otherUser =
-        conv.participant1Id === currentUserId
-          ? conv.participant2
-          : conv.participant1;
-
+      const otherUser = getOtherParticipant(conv, currentUserId);
       const name = otherUser?.name?.toLowerCase() || '';
       const lastMsg = conv.lastMessage?.content?.toLowerCase() || '';
       return name.includes(query) || lastMsg.includes(query);
@@ -47,15 +51,17 @@ export function ConversationList({
             Direct Messages
           </h2>
           {onNewChatClick && (
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="xs"
               onClick={onNewChatClick}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100/80 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              leftIcon={<Plus className="h-3.5 w-3.5" />}
+              className="font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100/80"
               title="Start New Conversation"
             >
-              <Plus className="h-3.5 w-3.5" />
-              <span>New Chat</span>
-            </button>
+              New Chat
+            </Button>
           )}
         </div>
         <div className="relative mt-3">
@@ -76,6 +82,30 @@ export function ConversationList({
           <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 space-y-2">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
             <span className="text-xs">Loading conversations...</span>
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-800">
+                Failed to load conversations
+              </p>
+              <p className="text-[11px] text-slate-500 mt-1 max-w-[220px]">
+                {errorMessage || 'Please check your connection and try again.'}
+              </p>
+            </div>
+            {onRetry && (
+              <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={onRetry}
+              >
+                Try Again
+              </Button>
+            )}
           </div>
         ) : filteredConversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400 space-y-2">

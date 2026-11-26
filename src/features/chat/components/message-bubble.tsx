@@ -1,3 +1,4 @@
+import { cn } from '@/utils/cn';
 import { formatMessageTime } from '../utils/format-time';
 import type { Message } from '../types/chat.types';
 
@@ -11,14 +12,19 @@ export function MessageBubble({ message, isCurrentUser }: MessageBubbleProps) {
 
   return (
     <div
-      className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'}`}
+      className={cn(
+        'flex flex-col',
+        isCurrentUser ? 'items-end' : 'items-start',
+      )}
     >
       <div
-        className={`max-w-[80%] sm:max-w-md rounded-2xl px-4 py-2.5 text-xs leading-relaxed break-words ${
+        className={cn(
+          'max-w-[80%] sm:max-w-md rounded-2xl px-4 py-2.5 text-xs leading-relaxed break-words',
           isCurrentUser
             ? 'bg-teal-700 text-white rounded-br-xs shadow-xs'
-            : 'bg-white border border-slate-200 text-slate-800 rounded-bl-xs shadow-2xs'
-        } ${message.isDeleted ? 'italic opacity-70' : ''}`}
+            : 'bg-white border border-slate-200 text-slate-800 rounded-bl-xs shadow-2xs',
+          message.isDeleted && 'italic opacity-70',
+        )}
       >
         {message.isDeleted ? 'This message was deleted' : message.content}
       </div>
