@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  type UseMutationResult,
+} from '@tanstack/react-query';
 import {
   updateProfile,
   updateMentorProfile,
@@ -7,8 +11,10 @@ import {
 import { profileQueryKeys } from './query-keys';
 import { authQueryKeys } from '@/features/auth/hooks/query-keys';
 import type {
+  MentorProfile,
   UpdateUserProfileDto,
   UpdateMentorProfileDto,
+  UserProfile,
 } from '../types/profile.types';
 
 export interface EditProfileVariables {
@@ -16,7 +22,16 @@ export interface EditProfileVariables {
   mentor?: UpdateMentorProfileDto;
 }
 
-export function useEditProfile() {
+export interface EditProfileResult {
+  user: UserProfile | null;
+  mentor: MentorProfile | null;
+}
+
+export function useEditProfile(): UseMutationResult<
+  EditProfileResult,
+  Error,
+  EditProfileVariables
+> {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -36,7 +51,11 @@ export function useEditProfile() {
   });
 }
 
-export function useUploadProfileAvatar() {
+export function useUploadProfileAvatar(): UseMutationResult<
+  UserProfile,
+  Error,
+  File
+> {
   const queryClient = useQueryClient();
 
   return useMutation({

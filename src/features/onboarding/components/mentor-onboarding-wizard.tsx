@@ -62,6 +62,7 @@ export function MentorOnboardingWizard() {
     register,
     handleSubmit,
     control,
+    getValues,
     setValue,
     formState: { errors },
   } = useForm<MentorOnboardingFormData>({
@@ -153,6 +154,15 @@ export function MentorOnboardingWizard() {
     );
   };
 
+  const onInvalid = () => {
+    const hasPhoto = Boolean(getValues('file') || user?.avatarUrl);
+    if (!hasPhoto) {
+      setPhotoRequiredError(
+        'A profile picture is required to publish your mentor profile.',
+      );
+    }
+  };
+
   const displayedPhoto = previewUrl || user?.avatarUrl || undefined;
 
   return (
@@ -169,7 +179,7 @@ export function MentorOnboardingWizard() {
         </CardDescription>
       </CardHeader>
 
-      <form noValidate onSubmit={handleSubmit(onSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onSubmit, onInvalid)}>
         <CardContent className="space-y-5 pt-6">
           {/* Step 01: Required Profile Photo */}
           <section className="rounded-xl border border-slate-200/80 bg-white p-5">

@@ -1,4 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Briefcase,
   Check,
@@ -16,6 +18,10 @@ import { useToast } from '@/hooks/use-toast';
 import { getMentorStatus } from '@/types/mentor';
 import { useEditProfile } from '../hooks/use-edit-profile';
 import { useRemoveMentorSkill } from '../hooks/use-profile-topics';
+import {
+  editMentorDetailsSchema,
+  type EditMentorDetailsFormData,
+} from '../schemas/profile.schemas';
 import type { MentorProfile } from '../types/profile.types';
 
 export interface MentorDetailsCardProps {
@@ -28,74 +34,61 @@ export function MentorDetailsCard({
   onAddSkillClick,
 }: MentorDetailsCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [headline, setHeadline] = useState(mentorProfile.headline);
-  const [yearsOfExperience, setYearsOfExperience] = useState(
-    String(mentorProfile.yearsOfExperience ?? ''),
-  );
-  const [about, setAbout] = useState(mentorProfile.about ?? '');
-  const [linkedinUrl, setLinkedinUrl] = useState(
-    mentorProfile.linkedinUrl ?? '',
-  );
-  const [validationError, setValidationError] = useState<string | null>(null);
 
   const mentorStatus = getMentorStatus(mentorProfile);
   const editProfileMutation = useEditProfile();
   const removeSkillMutation = useRemoveMentorSkill();
   const toast = useToast();
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm<EditMentorDetailsFormData>({
+    resolver: zodResolver(editMentorDetailsSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      headline: mentorProfile.headline,
+      yearsOfExperience: mentorProfile.yearsOfExperience ?? 1,
+      about: mentorProfile.about ?? '',
+      linkedinUrl: mentorProfile.linkedinUrl ?? '',
+    },
+  });
+
+  const aboutValue = useWatch({ control, name: 'about' }) ?? '';
+
   const skills = mentorProfile.skills ?? [];
 
   const handleStartEdit = () => {
-    setHeadline(mentorProfile.headline);
-    setYearsOfExperience(String(mentorProfile.yearsOfExperience ?? ''));
-    setAbout(mentorProfile.about ?? '');
-    setLinkedinUrl(mentorProfile.linkedinUrl ?? '');
-    setValidationError(null);
+    reset({
+      headline: mentorProfile.headline,
+      yearsOfExperience: mentorProfile.yearsOfExperience ?? 1,
+      about: mentorProfile.about ?? '',
+      linkedinUrl: mentorProfile.linkedinUrl ?? '',
+    });
     setIsEditing(true);
   };
 
   const handleCancel = () => {
-    setValidationError(null);
+    reset({
+      headline: mentorProfile.headline,
+      yearsOfExperience: mentorProfile.yearsOfExperience ?? 1,
+      about: mentorProfile.about ?? '',
+      linkedinUrl: mentorProfile.linkedinUrl ?? '',
+    });
     setIsEditing(false);
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const trimmedHeadline = headline.trim();
-    const trimmedAbout = about.trim();
-    const trimmedLinkedin = linkedinUrl.trim();
-    const parsedYears = Number(yearsOfExperience);
-
-    if (trimmedHeadline.length < 3 || trimmedHeadline.length > 150) {
-      setValidationError('Headline must be between 3 and 150 characters.');
-      return;
-    }
-
-    if (
-      !yearsOfExperience.trim() ||
-      Number.isNaN(parsedYears) ||
-      parsedYears < 1 ||
-      parsedYears > 60
-    ) {
-      setValidationError('Years of experience must be between 1 and 60.');
-      return;
-    }
-
-    if (trimmedAbout.length < 10 || trimmedAbout.length > 1000) {
-      setValidationError(
-        'About mentor description must be between 10 and 1000 characters.',
-      );
-      return;
-    }
-
-    setValidationError(null);
+  const onSubmit = (data: EditMentorDetailsFormData) => {
     editProfileMutation.mutate(
       {
         mentor: {
-          headline: trimmedHeadline,
-          yearsOfExperience: parsedYears,
-          about: trimmedAbout,
-          linkedinUrl: trimmedLinkedin || null,
+          headline: data.headline,
+          yearsOfExperience: data.yearsOfExperience,
+          about: data.about,
+          linkedinUrl: data.linkedinUrl || null,
         },
       },
       {
@@ -174,16 +167,20 @@ export function MentorDetailsCard({
       </div>
 
       {isEditing ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
             <div className="sm:col-span-8">
               <TextInput
                 id="mentor-inline-headline"
                 label="Professional Headline"
                 required
-                value={headline}
-                onChange={(e) => setHeadline(e.target.value)}
                 maxLength={150}
+                error={errors.headline?.message}
+                {...register('headline')}
               />
             </div>
             <div className="sm:col-span-4">
@@ -194,8 +191,8 @@ export function MentorDetailsCard({
                 min={1}
                 max={60}
                 required
-                value={yearsOfExperience}
-                onChange={(e) => setYearsOfExperience(e.target.value)}
+                error={errors.yearsOfExperience?.message}
+                {...register('yearsOfExperience', { valueAsNumber: true })}
               />
             </div>
           </div>
@@ -209,17 +206,22 @@ export function MentorDetailsCard({
                 About Mentor
               </label>
               <span className="text-[11px] font-medium text-slate-400">
-                {about.length}/1000
+                {aboutValue.length}/1000
               </span>
             </div>
             <textarea
               id="mentor-inline-about"
               rows={4}
-              value={about}
-              onChange={(e) => setAbout(e.target.value)}
               maxLength={1000}
+              aria-invalid={Boolean(errors.about)}
               className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/10 transition-all resize-none leading-relaxed"
+              {...register('about')}
             />
+            {errors.about?.message && (
+              <p role="alert" className="text-xs text-red-600 font-medium">
+                {errors.about.message}
+              </p>
+            )}
           </div>
 
           <TextInput
@@ -227,18 +229,9 @@ export function MentorDetailsCard({
             label="LinkedIn Profile (Optional)"
             type="url"
             placeholder="https://www.linkedin.com/in/your-name"
-            value={linkedinUrl}
-            onChange={(e) => setLinkedinUrl(e.target.value)}
+            error={errors.linkedinUrl?.message}
+            {...register('linkedinUrl')}
           />
-
-          {validationError && (
-            <p
-              role="alert"
-              className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl p-2.5"
-            >
-              {validationError}
-            </p>
-          )}
 
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
             <Button

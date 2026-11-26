@@ -89,9 +89,10 @@ export function useChatSocket({
     socketRef.current = socket;
     let isDisposed = false;
     let hasRetriedAuth = false;
+    let isRefreshingFromSocket = false;
 
     const handleTokenRefreshed = () => {
-      if (!isDisposed && !socket.connected) {
+      if (!isDisposed && !isRefreshingFromSocket && !socket.connected) {
         hasRetriedAuth = false;
         socket.connect();
       }
@@ -126,16 +127,21 @@ export function useChatSocket({
       }
 
       hasRetriedAuth = true;
-      void refreshAccessToken().then((newToken) => {
-        if (isDisposed) return;
-        if (newToken) {
-          if (!socket.connected) {
-            socket.connect();
+      isRefreshingFromSocket = true;
+      void refreshAccessToken()
+        .then((newToken) => {
+          if (isDisposed) return;
+          if (newToken) {
+            if (!socket.connected) {
+              socket.connect();
+            }
+          } else {
+            window.dispatchEvent(new CustomEvent(AUTH_SESSION_EXPIRED_EVENT));
           }
-        } else {
-          window.dispatchEvent(new CustomEvent(AUTH_SESSION_EXPIRED_EVENT));
-        }
-      });
+        })
+        .finally(() => {
+          isRefreshingFromSocket = false;
+        });
     });
 
     socket.on('messageCreated', (newMessage: Message) => {

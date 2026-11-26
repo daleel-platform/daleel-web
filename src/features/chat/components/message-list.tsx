@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { MessageSquare, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/button';
 import { MessageBubble } from './message-bubble';
@@ -33,19 +33,24 @@ export function MessageList({
   const prevScrollHeightRef = useRef<number | null>(null);
   const prevFirstMessageIdRef = useRef<string | null>(null);
   const prevLastMessageIdRef = useRef<string | null>(null);
-  const hasInitialScrolledRef = useRef(false);
+  const onLoadMoreRef = useRef(onLoadMore);
+  const [isInitialScrolled, setIsInitialScrolled] = useState(false);
+
+  useEffect(() => {
+    onLoadMoreRef.current = onLoadMore;
+  }, [onLoadMore]);
 
   useLayoutEffect(() => {
     if (messages.length === 0) {
       prevScrollHeightRef.current = null;
       prevFirstMessageIdRef.current = null;
       prevLastMessageIdRef.current = null;
-      hasInitialScrolledRef.current = false;
       return;
     }
 
     const firstId = messages[0]?.id ?? null;
     const lastId = messages[messages.length - 1]?.id ?? null;
+    let rafId: number | null = null;
 
     if (
       prevScrollHeightRef.current !== null &&
@@ -60,8 +65,8 @@ export function MessageList({
       const isInitialLoad = prevLastMessageIdRef.current === null;
       if (isInitialLoad && containerRef.current) {
         containerRef.current.scrollTop = containerRef.current.scrollHeight;
-        requestAnimationFrame(() => {
-          hasInitialScrolledRef.current = true;
+        rafId = requestAnimationFrame(() => {
+          setIsInitialScrolled(true);
         });
       } else {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -70,25 +75,33 @@ export function MessageList({
 
     prevFirstMessageIdRef.current = firstId;
     prevLastMessageIdRef.current = lastId;
+
+    return () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [messages]);
 
   useEffect(() => {
     const container = containerRef.current;
     const sentinel = topSentinelRef.current;
-    if (!container || !sentinel || !hasNextPage || !onLoadMore) {
+    if (
+      !container ||
+      !sentinel ||
+      !hasNextPage ||
+      !isInitialScrolled ||
+      isFetchingNextPage
+    ) {
       return;
     }
 
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (
-          entry?.isIntersecting &&
-          hasInitialScrolledRef.current &&
-          !isFetchingNextPage
-        ) {
+        if (entry?.isIntersecting && onLoadMoreRef.current) {
           prevScrollHeightRef.current = container.scrollHeight;
-          onLoadMore();
+          onLoadMoreRef.current();
         }
       },
       {
@@ -100,7 +113,7 @@ export function MessageList({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, onLoadMore]);
+  }, [hasNextPage, isFetchingNextPage, isInitialScrolled]);
 
   if (isLoading) {
     return (

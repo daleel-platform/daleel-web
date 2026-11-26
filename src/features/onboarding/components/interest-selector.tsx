@@ -259,8 +259,12 @@ export function InterestSelector({
           disabled={isAtLimit}
           onClick={() => {
             if (isAtLimit) return;
-            setIsOpen((prev) => !prev);
-            inputRef.current?.focus();
+            if (isOpen) {
+              setIsOpen(false);
+            } else {
+              setIsOpen(true);
+              inputRef.current?.focus();
+            }
           }}
           aria-label="Toggle topic suggestions"
           className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 disabled:opacity-40 cursor-pointer"

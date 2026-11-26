@@ -1,4 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, Pencil, User, X } from 'lucide-react';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -6,6 +8,10 @@ import { TextInput } from '@/components/text-input';
 import { useToast } from '@/hooks/use-toast';
 import { getMentorStatus } from '@/types/mentor';
 import { useEditProfile } from '../hooks/use-edit-profile';
+import {
+  editPersonalInfoSchema,
+  type EditPersonalInfoFormData,
+} from '../schemas/profile.schemas';
 import type { UserProfile } from '../types/profile.types';
 
 export interface ProfileInfoCardProps {
@@ -14,13 +20,27 @@ export interface ProfileInfoCardProps {
 
 export function ProfileInfoCard({ profile }: ProfileInfoCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [name, setName] = useState(profile.name);
-  const [bio, setBio] = useState(profile.bio ?? '');
-  const [validationError, setValidationError] = useState<string | null>(null);
 
   const editProfileMutation = useEditProfile();
   const toast = useToast();
   const mentorStatus = getMentorStatus(profile.mentorProfile);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm<EditPersonalInfoFormData>({
+    resolver: zodResolver(editPersonalInfoSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      name: profile.name,
+      bio: profile.bio ?? '',
+    },
+  });
+
+  const bioValue = useWatch({ control, name: 'bio' }) ?? '';
 
   const getAccountTypeLabel = () => {
     switch (mentorStatus) {
@@ -36,40 +56,27 @@ export function ProfileInfoCard({ profile }: ProfileInfoCardProps) {
   };
 
   const handleStartEdit = () => {
-    setName(profile.name);
-    setBio(profile.bio ?? '');
-    setValidationError(null);
+    reset({
+      name: profile.name,
+      bio: profile.bio ?? '',
+    });
     setIsEditing(true);
   };
 
   const handleCancel = () => {
-    setName(profile.name);
-    setBio(profile.bio ?? '');
-    setValidationError(null);
+    reset({
+      name: profile.name,
+      bio: profile.bio ?? '',
+    });
     setIsEditing(false);
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const trimmedName = name.trim();
-    const trimmedBio = bio.trim();
-
-    if (trimmedName.length < 2 || trimmedName.length > 100) {
-      setValidationError('Full name must be between 2 and 100 characters.');
-      return;
-    }
-
-    if (trimmedBio.length > 500) {
-      setValidationError('Bio must be 500 characters or fewer.');
-      return;
-    }
-
-    setValidationError(null);
+  const onSubmit = (data: EditPersonalInfoFormData) => {
     editProfileMutation.mutate(
       {
         user: {
-          name: trimmedName,
-          bio: trimmedBio,
+          name: data.name,
+          bio: data.bio,
         },
       },
       {
@@ -107,7 +114,8 @@ export function ProfileInfoCard({ profile }: ProfileInfoCardProps) {
 
       {isEditing ? (
         <form
-          onSubmit={handleSubmit}
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 flex-1 flex flex-col justify-between"
         >
           <div className="space-y-4">
@@ -115,9 +123,9 @@ export function ProfileInfoCard({ profile }: ProfileInfoCardProps) {
               id="profile-inline-name"
               label="Full Name"
               required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
               maxLength={100}
+              error={errors.name?.message}
+              {...register('name')}
             />
 
             <div className="space-y-1.5">
@@ -129,28 +137,24 @@ export function ProfileInfoCard({ profile }: ProfileInfoCardProps) {
                   About Me
                 </label>
                 <span className="text-[11px] font-medium text-slate-400">
-                  {bio.length}/500
+                  {bioValue.length}/500
                 </span>
               </div>
               <textarea
                 id="profile-inline-bio"
                 rows={4}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
                 maxLength={500}
+                aria-invalid={Boolean(errors.bio)}
                 placeholder="Tell mentors a bit about your background and career goals..."
                 className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs text-slate-800 placeholder:text-slate-400 focus:border-teal-600 focus:outline-none focus:ring-4 focus:ring-teal-600/10 transition-all resize-none leading-relaxed"
+                {...register('bio')}
               />
+              {errors.bio?.message && (
+                <p role="alert" className="text-xs text-red-600 font-medium">
+                  {errors.bio.message}
+                </p>
+              )}
             </div>
-
-            {validationError && (
-              <p
-                role="alert"
-                className="text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl p-2.5"
-              >
-                {validationError}
-              </p>
-            )}
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">

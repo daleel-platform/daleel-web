@@ -23,22 +23,10 @@ import { Card } from '@/components/card';
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
 import { useCreateConversation } from '@/features/chat/hooks/use-create-conversation';
 import { useMentor } from '@/features/mentors/hooks/use-mentors';
+import { getPlaceholderRating } from '@/features/mentors/utils/mentor-rating';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { ROUTES } from '@/routes/paths';
-
-/** Temporary deterministic placeholder until real mentor ratings are implemented. */
-function getPlaceholderRating(mentorId: string): {
-  rating: string;
-  reviewCount: number;
-} {
-  const seed = mentorId
-    .split('')
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  const rating = (4.7 + (seed % 4) * 0.1).toFixed(1);
-  const reviewCount = 12 + (seed % 37);
-  return { rating, reviewCount };
-}
 
 export function MentorDetailsPage() {
   const { id } = useParams<{ id: string }>();

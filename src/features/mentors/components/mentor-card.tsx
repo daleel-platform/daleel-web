@@ -5,6 +5,7 @@ import { Badge } from '@/components/badge';
 import { Card } from '@/components/card';
 import { ROUTES } from '@/routes/paths';
 import type { MentorItem } from '../types/mentor.types';
+import { getPlaceholderRating } from '../utils/mentor-rating';
 
 export interface MentorCardRecommendation {
   matchScore: number | null;
@@ -15,19 +16,6 @@ export interface MentorCardRecommendation {
 export interface MentorCardProps {
   mentor: MentorItem;
   recommendation?: MentorCardRecommendation;
-}
-
-/** Temporary deterministic placeholder until real mentor ratings are implemented. */
-function getPlaceholderRating(mentor: MentorItem): {
-  rating: string;
-  reviewCount: number;
-} {
-  const seed = mentor.id
-    .split('')
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-  const rating = (4.7 + (seed % 4) * 0.1).toFixed(1);
-  const reviewCount = 12 + (seed % 37);
-  return { rating, reviewCount };
 }
 
 export function MentorCard({ mentor, recommendation }: MentorCardProps) {
@@ -47,7 +35,7 @@ export function MentorCard({ mentor, recommendation }: MentorCardProps) {
       ? Math.round(recommendation.matchScore)
       : null;
 
-  const { rating, reviewCount } = getPlaceholderRating(mentor);
+  const { rating, reviewCount } = getPlaceholderRating(mentor.id);
 
   return (
     <Link
